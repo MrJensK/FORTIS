@@ -1,0 +1,1701 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FORTIS</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;font-family:'Helvetica Neue',Arial,sans-serif}
+:root{
+  --accent:#E85D26;
+  --accent2:#2A6AE8;
+  --accent-light:#FEF0EB;
+  --bg:#F2F1ED;
+  --card:#FFFFFF;
+  --text:#141414;
+  --muted:#888880;
+  --border:rgba(0,0,0,0.09);
+  --nav:#FFFFFF;
+  --header:#141414;
+  --header-text:#FFFFFF;
+  --outer:#E8E6E0;
+  --nav-h:66px;
+  --radius:14px;
+  --radius-sm:10px;
+}
+html,body{height:100%;background:var(--outer)}
+#root{max-width:420px;margin:0 auto;min-height:100vh;background:var(--bg);position:relative;overflow:hidden;box-shadow:0 0 40px rgba(0,0,0,0.15);transition:background 0.3s}
+
+/* ── SPLASH ─────────────────────────────── */
+#splash{position:absolute;inset:0;background:#0F0F0F;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100}
+.splash-ring{position:relative;width:140px;height:140px;margin-bottom:32px}
+.splash-ring svg{animation:spin 3s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.splash-logo{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.splash-name{font-size:32px;font-weight:800;letter-spacing:0.12em;color:#FFF;margin-bottom:2px}
+.splash-sub{font-size:10px;letter-spacing:0.25em;color:#666;text-transform:uppercase}
+.splash-progress{position:absolute;bottom:48px;left:48px;right:48px;height:2px;background:#222;border-radius:1px;overflow:hidden}
+.splash-fill{height:100%;background:var(--accent);border-radius:1px;width:0;transition:width 0.1s linear}
+
+/* ── ONBOARDING ──────────────────────────── */
+#onboarding{position:absolute;inset:0;background:#FFF;overflow-y:auto;display:none}
+.ob-header{padding:56px 28px 24px;background:#FFF}
+.ob-steps{display:flex;gap:6px;margin-bottom:28px}
+.ob-step{height:3px;flex:1;border-radius:2px;background:#EAEAEA;transition:background 0.3s}
+.ob-step.done{background:var(--accent)}
+.ob-title{font-size:26px;font-weight:800;color:var(--text);line-height:1.2;margin-bottom:6px}
+.ob-desc{font-size:14px;color:var(--muted);line-height:1.5}
+.ob-body{padding:0 28px 120px}
+.field{margin-bottom:18px}
+.field label{display:block;font-size:12px;font-weight:600;letter-spacing:0.06em;color:var(--muted);text-transform:uppercase;margin-bottom:7px}
+.field input,.field select{width:100%;padding:14px 16px;border:1.5px solid #E8E8E8;border-radius:var(--radius-sm);font-size:16px;color:var(--text);background:#FFF;-webkit-appearance:none;outline:none;transition:border-color 0.2s}
+.field input:focus,.field select:focus{border-color:var(--accent)}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.radio-group{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.radio-opt{padding:12px 8px;border:1.5px solid #E8E8E8;border-radius:var(--radius-sm);text-align:center;font-size:13px;cursor:pointer;transition:all 0.2s;color:var(--text)}
+.radio-opt.active{border-color:var(--accent);background:var(--accent-light);color:var(--accent);font-weight:600}
+.macro-preview{background:#F7F7F5;border-radius:var(--radius);padding:20px;margin-top:8px}
+.macro-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #EAEAEA}
+.macro-row:last-child{border-bottom:none}
+.macro-name{font-size:14px;color:var(--muted)}
+.macro-val{font-size:18px;font-weight:700;color:var(--text)}
+.macro-unit{font-size:12px;color:var(--muted);font-weight:400}
+.ob-footer{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;padding:16px 28px 32px;background:#FFF;border-top:1px solid #EAEAEA}
+.btn-primary{width:100%;padding:17px;background:var(--accent);color:#FFF;font-size:16px;font-weight:700;border:none;border-radius:var(--radius);cursor:pointer;letter-spacing:0.02em;transition:opacity 0.2s}
+.btn-primary:active{opacity:0.85}
+.btn-ghost{width:100%;padding:13px;background:none;color:var(--muted);font-size:14px;border:none;cursor:pointer;margin-top:8px}
+.done-screen{text-align:center;padding:48px 28px}
+.done-icon{width:80px;height:80px;background:var(--accent-light);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:36px}
+.done-title{font-size:28px;font-weight:800;color:var(--text);margin-bottom:8px}
+.done-sub{font-size:15px;color:var(--muted);line-height:1.6}
+
+/* ── MAIN APP ────────────────────────────── */
+#app{position:absolute;inset:0;display:none;flex-direction:column}
+.screen{flex:1;overflow-y:auto;padding-bottom:calc(var(--nav-h) + 16px)}
+
+/* ── BOTTOM NAV ───────────────────────────  */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;height:var(--nav-h);background:var(--nav);border-top:1px solid var(--border);display:flex;align-items:center;z-index:50;padding:0 8px}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:8px 4px;cursor:pointer;border:none;background:none;transition:color 0.2s}
+.nav-icon{font-size:20px;line-height:1}
+.nav-label{font-size:10px;letter-spacing:0.04em;font-weight:500;color:var(--muted)}
+.nav-item.active .nav-label{color:var(--accent)}
+.nav-item.active .nav-icon{filter:none}
+
+/* ── HOME / DASHBOARD ────────────────────── */
+.home-header{padding:52px 22px 20px;background:var(--header)}
+.greeting-sub{font-size:12px;color:#888;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px}
+.greeting{font-size:26px;font-weight:800;color:#FFF;line-height:1.2}
+.streak-pill{display:inline-flex;align-items:center;gap:5px;background:#2A2A2A;border-radius:20px;padding:5px 12px;margin-top:12px;font-size:12px;color:#FFF;font-weight:600}
+.home-content{padding:18px 16px}
+.section-title{font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.card{background:var(--card);border-radius:var(--radius);padding:18px;margin-bottom:14px;border:1px solid var(--border)}
+
+/* Calorie Ring */
+.calorie-card{display:flex;align-items:center;gap:20px}
+.ring-wrap{position:relative;flex-shrink:0}
+.ring-wrap svg{transform:rotate(-90deg)}
+.ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring-num{font-size:22px;font-weight:800;color:var(--text)}
+.ring-label{font-size:10px;color:var(--muted);letter-spacing:0.06em;text-transform:uppercase}
+.ring-macros{flex:1}
+.rm-row{margin-bottom:10px}
+.rm-label{display:flex;justify-content:space-between;margin-bottom:4px}
+.rm-name{font-size:12px;color:var(--muted)}
+.rm-val{font-size:12px;font-weight:600;color:var(--text)}
+.rm-bar{height:5px;background:#F0F0EE;border-radius:3px;overflow:hidden}
+.rm-fill{height:100%;border-radius:3px}
+
+/* Water */
+.water-card .section-title{margin-bottom:14px}
+.water-row{display:flex;align-items:center;gap:12px}
+.water-drops{display:flex;gap:5px;flex:1;flex-wrap:wrap}
+.drop{width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#E8F4FD;border:1.5px solid #C8E6F8;transition:background 0.2s}
+.drop.filled{background:#2A6AE8;border-color:#2A6AE8}
+.water-btn{padding:8px 14px;border:1.5px solid #2A6AE8;border-radius:8px;color:#2A6AE8;font-size:13px;font-weight:600;background:none;cursor:pointer}
+
+/* Today's workout */
+.workout-card-inner{display:flex;justify-content:space-between;align-items:flex-start}
+.workout-name{font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px}
+.workout-meta{font-size:13px;color:var(--muted)}
+.muscle-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.badge{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.badge-orange{background:var(--accent-light);color:var(--accent)}
+.badge-blue{background:#EBF0FE;color:#2A6AE8}
+.badge-green{background:#EAFAEE;color:#22A647}
+.btn-start{padding:10px 18px;background:var(--accent);color:#FFF;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap}
+.btn-start:active{opacity:0.85}
+.no-workout{text-align:center;padding:12px 0;color:var(--muted);font-size:14px}
+
+/* ── SCHEDULE ──────────────────────────────  */
+.sched-header{padding:52px 22px 0;background:var(--header)}
+.sched-title{font-size:24px;font-weight:800;color:#FFF;margin-bottom:18px}
+.week-strip{display:flex;gap:4px;overflow-x:auto;padding-bottom:16px;scrollbar-width:none}
+.week-strip::-webkit-scrollbar{display:none}
+.day-pill{flex-shrink:0;width:46px;height:62px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;background:rgba(255,255,255,0.1);border:1.5px solid transparent;transition:all 0.2s}
+.day-pill.active{background:#FFF;border-color:#FFF}
+.day-name{font-size:10px;letter-spacing:0.06em;color:rgba(255,255,255,0.6);font-weight:600;text-transform:uppercase}
+.day-num{font-size:18px;font-weight:800;color:rgba(255,255,255,0.9)}
+.day-pill.active .day-name{color:var(--muted)}
+.day-pill.active .day-num{color:var(--text)}
+.day-dot{width:4px;height:4px;border-radius:50%;background:var(--accent)}
+.day-pill.active .day-dot{background:var(--accent)}
+.sched-body{padding:18px 16px}
+.day-title{font-size:20px;font-weight:800;color:var(--text);margin-bottom:14px}
+.workout-block{background:var(--card);border-radius:var(--radius);overflow:hidden;border:1px solid var(--border);margin-bottom:12px}
+.wb-header{padding:14px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border)}
+.wb-name{font-size:16px;font-weight:700;color:var(--text)}
+.wb-time{font-size:12px;color:var(--muted)}
+.wb-exercises{padding:12px 16px}
+.wb-ex{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:14px;color:var(--text)}
+.wb-ex-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0}
+.wb-ex-detail{color:var(--muted);font-size:12px;margin-left:auto}
+.wb-footer{padding:12px 16px;border-top:1px solid var(--border)}
+.btn-start-full{width:100%;padding:13px;background:var(--accent);color:#FFF;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer}
+.add-workout-btn{width:100%;padding:14px;background:none;border:2px dashed #DDDDD8;border-radius:var(--radius);color:var(--muted);font-size:14px;cursor:pointer;margin-top:4px;transition:all 0.2s}
+.add-workout-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ── LIBRARY ───────────────────────────────  */
+.lib-header{padding:52px 16px 16px;background:var(--header)}
+.lib-title{font-size:24px;font-weight:800;color:#FFF;margin-bottom:14px}
+.search-wrap{position:relative}
+.search-input{width:100%;padding:13px 16px 13px 44px;border-radius:var(--radius-sm);border:none;font-size:15px;background:#FFF;color:var(--text);outline:none}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#AAA;font-size:16px}
+.filter-btn{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--accent);font-size:13px;font-weight:700;display:flex;align-items:center;gap:3px}
+.filter-badge{background:var(--accent);color:#FFF;border-radius:10px;padding:1px 6px;font-size:10px;font-weight:700}
+.chips-row{display:flex;gap:8px;overflow-x:auto;padding:14px 16px 4px;scrollbar-width:none;background:var(--header)}
+.chips-row::-webkit-scrollbar{display:none}
+.chip{flex-shrink:0;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;border:1.5px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.8);background:transparent;transition:all 0.2s}
+.chip.active{background:var(--accent);border-color:var(--accent);color:#FFF}
+.lib-body{padding:14px 16px}
+.ex-card{background:var(--card);border-radius:var(--radius-sm);padding:14px 16px;display:flex;align-items:center;gap:14px;margin-bottom:10px;border:1px solid var(--border);cursor:pointer;transition:transform 0.1s}
+.ex-card:active{transform:scale(0.99)}
+.ex-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.ex-info{flex:1;min-width:0}
+.ex-name{font-size:15px;font-weight:700;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ex-meta{font-size:12px;color:var(--muted)}
+.ex-equip{font-size:11px;padding:3px 8px;border-radius:20px;background:#F0F0EE;color:var(--muted);font-weight:600;flex-shrink:0}
+
+/* ── NUTRITION STUB ────────────────────────  */
+.nutr-header{padding:52px 22px 20px;background:var(--header)}
+.nutr-title{font-size:24px;font-weight:800;color:#FFF;margin-bottom:4px}
+.nutr-date{font-size:13px;color:rgba(255,255,255,0.5)}
+.meal-card{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);margin-bottom:12px;overflow:hidden}
+.meal-header{padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
+.meal-name{font-size:15px;font-weight:700;color:var(--text)}
+.meal-cal{font-size:13px;color:var(--muted)}
+.meal-add{padding:4px 12px;border:1.5px solid var(--accent);border-radius:8px;color:var(--accent);font-size:12px;font-weight:700;background:none;cursor:pointer}
+.meal-empty{padding:12px 16px;font-size:13px;color:var(--muted);border-top:1px solid var(--border)}
+.food-item{display:flex;align-items:center;gap:8px;padding:10px 16px;border-top:1px solid var(--border)}
+.food-item-name{font-size:14px;font-weight:600;color:var(--text)}
+.food-item-detail{font-size:11px;color:var(--muted);margin-top:1px}
+.food-item-macros{font-size:11px;color:var(--muted);white-space:nowrap;margin-left:auto}
+.food-item-del{background:none;border:none;color:var(--muted);font-size:16px;cursor:pointer;padding:0 0 0 8px;line-height:1;flex-shrink:0}
+.nutr-summary{background:var(--card);border-radius:var(--radius);border:1px solid var(--border);padding:16px;margin-bottom:16px}
+.nutr-cal-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
+.nutr-cal-num{font-size:28px;font-weight:800;color:var(--text)}
+.nutr-cal-goal{font-size:13px;color:var(--muted)}
+.food-search-item{padding:12px 0;border-bottom:1px solid var(--border);cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.food-search-item:last-child{border-bottom:none}
+.food-search-item:active{opacity:0.7}
+.food-search-name{font-size:14px;font-weight:600;color:var(--text)}
+.food-search-meta{font-size:12px;color:var(--muted);margin-top:2px}
+.food-amount-section{background:var(--bg);border-radius:var(--radius-sm);padding:14px;margin:12px 0}
+.food-amount-preview{font-size:13px;color:var(--muted);margin-top:8px;line-height:1.6}
+
+/* ── PROFILE ───────────────────────────────  */
+.prof-header{padding:52px 22px 28px;background:var(--text);text-align:center}
+.prof-avatar{width:72px;height:72px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:26px;font-weight:800;color:#FFF}
+.prof-name{font-size:22px;font-weight:800;color:#FFF;margin-bottom:4px}
+.prof-goal{font-size:13px;color:rgba(255,255,255,0.5)}
+.prof-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:18px 16px}
+.ps-card{background:var(--card);border-radius:var(--radius-sm);padding:14px 12px;text-align:center;border:1px solid var(--border)}
+.ps-num{font-size:22px;font-weight:800;color:var(--text)}
+.ps-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-top:2px}
+.settings-section{padding:0 16px 12px}
+/* ── ACHIEVEMENT TOAST ───────────────────── */
+#achievementToast{position:absolute;top:60px;left:50%;transform:translateX(-50%) translateY(-20px);background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 20px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,0.18);z-index:500;width:260px;opacity:0;pointer-events:none;transition:opacity 0.3s,transform 0.3s}
+#achievementToast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── ACHIEVEMENT GRID ────────────────────── */
+.ach-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:20px}
+.ach-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;display:flex;gap:10px;align-items:center}
+.ach-card.locked{opacity:0.38}
+.ach-icon{font-size:26px;flex-shrink:0}
+.ach-name{font-size:13px;font-weight:700;color:var(--text);line-height:1.2}
+.ach-desc{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.3}
+
+.theme-row{display:flex;gap:10px;margin-bottom:16px}
+.theme-swatch{flex:1;height:52px;border-radius:var(--radius-sm);cursor:pointer;border:2px solid transparent;overflow:hidden;transition:border-color 0.2s,transform 0.15s;position:relative}
+.theme-swatch:active{transform:scale(0.95)}
+.theme-swatch.active{border-color:var(--accent)}
+.theme-swatch-top{height:60%;width:100%}
+.theme-swatch-bot{height:40%;width:100%}
+.theme-swatch-check{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.5);opacity:0}
+.theme-swatch.active .theme-swatch-check{opacity:1}
+.theme-label{text-align:center;font-size:10px;color:var(--muted);margin-top:4px;font-weight:500}
+.settings-item{display:flex;justify-content:space-between;align-items:center;padding:15px 16px;background:var(--card);margin-bottom:2px;cursor:pointer;border:1px solid var(--border)}
+.settings-item:first-child{border-radius:var(--radius) var(--radius) 0 0}
+.settings-item:last-child{border-radius:0 0 var(--radius) var(--radius)}
+.si-label{font-size:15px;color:var(--text)}
+.si-val{font-size:14px;color:var(--muted)}
+
+/* ── ACTIVE WORKOUT ──────────────────────── */
+#active-workout{position:absolute;inset:0;background:#0F0F0F;display:none;flex-direction:column;z-index:200}
+.aw-header{padding:52px 22px 20px;display:flex;justify-content:space-between;align-items:flex-start}
+.aw-name{font-size:22px;font-weight:800;color:#FFF}
+.aw-timer{font-size:14px;color:#888;margin-top:4px}
+.aw-close{background:rgba(255,255,255,0.1);border:none;color:#FFF;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.aw-body{flex:1;overflow-y:auto;padding:0 16px 16px}
+.aw-ex-card{background:#1A1A1A;border-radius:var(--radius);padding:16px;margin-bottom:12px}
+.aw-ex-name{font-size:17px;font-weight:700;color:#FFF;margin-bottom:12px}
+.aw-sets{display:flex;flex-direction:column;gap:8px}
+.aw-set-row{display:grid;grid-template-columns:28px 1fr 1fr auto;gap:8px;align-items:center}
+.set-num{font-size:12px;color:#666;font-weight:700;text-align:center}
+.set-input{padding:10px 12px;background:#2A2A2A;border:1px solid #333;border-radius:8px;color:#FFF;font-size:16px;text-align:center;width:100%;outline:none}
+.set-input:focus{border-color:var(--accent)}
+.set-done{width:34px;height:34px;border-radius:8px;border:1.5px solid #444;background:none;color:#666;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.set-done.completed{background:var(--accent);border-color:var(--accent);color:#FFF}
+.aw-footer{padding:16px;border-top:1px solid #222}
+.btn-finish{width:100%;padding:16px;background:#FFF;color:#0F0F0F;border:none;border-radius:var(--radius);font-size:16px;font-weight:800;cursor:pointer}
+
+/* ── MODAL ────────────────────────────────  */
+.modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.5);z-index:300;display:none;align-items:flex-end}
+.modal-overlay.show{display:flex}
+.modal-sheet{background:#FFF;border-radius:var(--radius) var(--radius) 0 0;width:100%;padding:24px 22px 40px;max-height:85vh;overflow-y:auto}
+.modal-handle{width:36px;height:4px;background:#DDD;border-radius:2px;margin:0 auto 20px}
+.modal-title{font-size:20px;font-weight:800;color:var(--text);margin-bottom:20px}
+
+/* ── FILTER MODAL ────────────────────────  */
+.filter-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.5);z-index:400;display:none;align-items:flex-end}
+.filter-overlay.show{display:flex}
+.create-ex-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.5);z-index:450;display:none;align-items:flex-end}
+.create-ex-overlay.show{display:flex}
+.create-ex-sheet{background:var(--card);border-radius:var(--radius) var(--radius) 0 0;width:100%;padding:24px 22px 40px;max-height:90vh;overflow-y:auto}
+.create-ex-sheet .field{margin-bottom:12px}
+.create-ex-sheet .field label{display:block;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.create-ex-sheet .field input,.create-ex-sheet .field select{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:15px;color:var(--text);background:var(--bg);box-sizing:border-box}
+.ce-instruction-row{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+.ce-instruction-row input{flex:1;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;color:var(--text);background:var(--bg)}
+.ce-instruction-row button{width:32px;height:32px;background:#FEE2E2;border:none;border-radius:var(--radius-sm);color:#E53E3E;font-size:16px;cursor:pointer;flex-shrink:0}
+.lib-fab{position:sticky;bottom:16px;left:50%;transform:translateX(-50%);display:block;margin:16px auto 0;padding:13px 28px;background:var(--accent);color:#FFF;font-size:15px;font-weight:700;border:none;border-radius:999px;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.18);width:max-content}
+.ex-card-custom{border:1.5px solid var(--accent);}
+.filter-sheet{background:#FFF;border-radius:var(--radius) var(--radius) 0 0;width:100%;padding:24px 22px 40px;max-height:80vh;overflow-y:auto}
+.filter-section-title{font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin:18px 0 10px}
+.filter-section-title:first-child{margin-top:0}
+.filter-chip-row{display:flex;flex-wrap:wrap;gap:8px}
+.filter-chip{padding:8px 14px;border:1.5px solid #E8E8E8;border-radius:20px;font-size:13px;cursor:pointer;transition:all 0.2s;color:var(--text);background:#FFF}
+.filter-chip.active{border-color:var(--accent);background:var(--accent-light);color:var(--accent);font-weight:600}
+.filter-actions{display:flex;gap:10px;margin-top:24px}
+.filter-reset{flex:1;padding:14px;background:#F5F5F3;color:var(--text);font-size:15px;font-weight:600;border:none;border-radius:var(--radius);cursor:pointer}
+.filter-apply{flex:2;padding:14px;background:var(--accent);color:#FFF;font-size:15px;font-weight:700;border:none;border-radius:var(--radius);cursor:pointer}
+
+/* ── REST TIMER ───────────────────────────  */
+.rest-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.85);z-index:250;display:none;flex-direction:column;align-items:center;justify-content:center}
+.rest-overlay.show{display:flex}
+.rest-num{font-size:80px;font-weight:800;color:#FFF;font-variant-numeric:tabular-nums}
+.rest-label{font-size:14px;color:#888;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:32px}
+.rest-skip{padding:12px 32px;border:2px solid rgba(255,255,255,0.3);border-radius:12px;background:none;color:#FFF;font-size:14px;font-weight:700;cursor:pointer}
+</style>
+</head>
+<body>
+<div id="root">
+
+<div id="achievementToast"></div>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="splash-ring">
+    <svg width="140" height="140" viewBox="0 0 140 140">
+      <circle cx="70" cy="70" r="60" fill="none" stroke="#1A1A1A" stroke-width="3"/>
+      <circle cx="70" cy="70" r="60" fill="none" stroke="#E85D26" stroke-width="3"
+        stroke-dasharray="377" stroke-dashoffset="188" stroke-linecap="round"/>
+    </svg>
+    <div class="splash-logo">
+      <div class="splash-name">FORTIS</div>
+      <div class="splash-sub">Träningsapp</div>
+    </div>
+  </div>
+  <div class="splash-progress"><div class="splash-fill" id="splashFill"></div></div>
+</div>
+
+<!-- ONBOARDING -->
+<div id="onboarding">
+  <div class="ob-header">
+    <div class="ob-steps" id="obSteps"></div>
+    <div class="ob-title" id="obTitle"></div>
+    <div class="ob-desc" id="obDesc"></div>
+  </div>
+  <div class="ob-body" id="obBody"></div>
+  <div class="ob-footer" id="obFooter"></div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <!-- Home -->
+  <div class="screen" id="tabHome">
+    <div class="home-header">
+      <div class="greeting-sub">God morgon</div>
+      <div class="greeting" id="homeGreeting">Jens</div>
+      <div class="streak-pill">🔥 <span id="streakCount">0</span> dagars streak</div>
+    </div>
+    <div class="home-content">
+      <div class="section-title">Kalorier idag</div>
+      <div class="card calorie-card">
+        <div class="ring-wrap">
+          <svg width="100" height="100" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="42" fill="none" stroke="#F0F0EE" stroke-width="8"/>
+            <circle id="calRing" cx="50" cy="50" r="42" fill="none" stroke="#E85D26" stroke-width="8"
+              stroke-dasharray="264" stroke-dashoffset="264" stroke-linecap="round"
+              style="transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dashoffset 0.8s ease"/>
+          </svg>
+          <div class="ring-center">
+            <div class="ring-num" id="calsLeft">—</div>
+            <div class="ring-label">kvar</div>
+          </div>
+        </div>
+        <div class="ring-macros">
+          <div class="rm-row">
+            <div class="rm-label"><span class="rm-name">Protein</span><span class="rm-val" id="mProtein">0<span class="rm-unit">g</span></span></div>
+            <div class="rm-bar"><div class="rm-fill" id="mProteinBar" style="background:#E85D26;width:0%"></div></div>
+          </div>
+          <div class="rm-row">
+            <div class="rm-label"><span class="rm-name">Kolhydrater</span><span class="rm-val" id="mCarbs">0<span class="rm-unit">g</span></span></div>
+            <div class="rm-bar"><div class="rm-fill" id="mCarbsBar" style="background:#2A6AE8;width:0%"></div></div>
+          </div>
+          <div class="rm-row">
+            <div class="rm-label"><span class="rm-name">Fett</span><span class="rm-val" id="mFat">0<span class="rm-unit">g</span></span></div>
+            <div class="rm-bar"><div class="rm-fill" id="mFatBar" style="background:#22A647;width:0%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">Vatten</div>
+      <div class="card">
+        <div class="water-row">
+          <div class="water-drops" id="waterDrops"></div>
+          <button class="water-btn" onclick="addWater()">+2,5 dl</button>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:10px" id="waterLabel">0 / 2500 ml</div>
+      </div>
+
+      <div class="section-title">Dagens pass</div>
+      <div class="card" id="todayWorkoutCard"></div>
+    </div>
+  </div>
+
+  <!-- Schedule -->
+  <div class="screen" id="tabSchedule" style="display:none">
+    <div class="sched-header">
+      <div class="sched-title">Schema</div>
+      <div class="week-strip" id="weekStrip"></div>
+    </div>
+    <div class="sched-body" id="schedBody"></div>
+  </div>
+
+  <!-- Library -->
+  <div class="screen" id="tabLibrary" style="display:none">
+    <div class="lib-header">
+      <div class="lib-title">Övningsbibliotek</div>
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" type="text" placeholder="Sök övning..." id="libSearch" oninput="filterExercises()">
+        <button class="filter-btn" onclick="toggleFilterModal()">Filter <span class="filter-badge" id="filterBadge" style="display:none">0</span></button>
+      </div>
+    </div>
+    <div class="chips-row" id="equipChips"></div>
+    <div class="lib-body" id="libBody"></div>
+    <button class="lib-fab" onclick="openCreateExercise()">+ Ny övning</button>
+  </div>
+
+  <!-- Nutrition -->
+  <div class="screen" id="tabNutrition" style="display:none">
+    <div class="nutr-header">
+      <div class="nutr-title">Kost</div>
+      <div class="nutr-date" id="nutrDate"></div>
+    </div>
+    <div style="padding:18px 16px">
+      <div class="nutr-summary" id="nutrSummary"></div>
+      <div class="section-title" style="margin-bottom:10px">Måltider</div>
+      <div id="mealCards"></div>
+      <span id="nutrProtGoal" style="display:none"></span>
+      <span id="nutrCarbGoal" style="display:none"></span>
+      <span id="nutrFatGoal" style="display:none"></span>
+    </div>
+  </div>
+
+  <!-- Profile -->
+  <div class="screen" id="tabProfile" style="display:none">
+    <div class="prof-header">
+      <div class="prof-avatar" id="profAvatar">J</div>
+      <div class="prof-name" id="profName">—</div>
+      <div class="prof-goal" id="profGoalText">—</div>
+    </div>
+    <div class="prof-stats">
+      <div class="ps-card"><div class="ps-num" id="psTotal">0</div><div class="ps-label">Pass totalt</div></div>
+      <div class="ps-card"><div class="ps-num" id="psStreak">0</div><div class="ps-label">Streak</div></div>
+      <div class="ps-card"><div class="ps-num" id="psWeight">—</div><div class="ps-label">Kg</div></div>
+    </div>
+    <div class="settings-section">
+      <div class="section-title" style="padding:0 0 10px">Achievements</div>
+      <div class="ach-grid" id="achGrid"></div>
+      <div class="section-title" style="padding:0 0 10px">Inställningar</div>
+      <div id="settingsItems"></div>
+    </div>
+    <div style="padding:0 16px 20px">
+      <button onclick="resetApp()" style="width:100%;padding:14px;border:1.5px solid #E0E0E0;border-radius:var(--radius);background:none;color:#CC3333;font-size:14px;font-weight:600;cursor:pointer">Återställ app</button>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <button class="nav-item active" onclick="switchTab('Home')" id="navHome">
+      <span class="nav-icon">🏠</span><span class="nav-label">Hem</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('Schedule')" id="navSchedule">
+      <span class="nav-icon">📅</span><span class="nav-label">Schema</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('Library')" id="navLibrary">
+      <span class="nav-icon">📚</span><span class="nav-label">Bibliotek</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('Nutrition')" id="navNutrition">
+      <span class="nav-icon">🍎</span><span class="nav-label">Kost</span>
+    </button>
+    <button class="nav-item" onclick="switchTab('Profile')" id="navProfile">
+      <span class="nav-icon">👤</span><span class="nav-label">Profil</span>
+    </button>
+  </nav>
+</div>
+
+<!-- Active Workout View -->
+<div id="active-workout">
+  <div class="aw-header">
+    <div>
+      <div class="aw-name" id="awName">Pass</div>
+      <div class="aw-timer" id="awTimer">00:00</div>
+    </div>
+    <button class="aw-close" onclick="closeWorkout()">✕</button>
+  </div>
+  <div class="aw-body" id="awBody"></div>
+  <div class="aw-footer">
+    <button class="btn-finish" onclick="finishWorkout()">Avsluta pass</button>
+  </div>
+</div>
+
+<!-- Rest Timer Overlay -->
+<div class="rest-overlay" id="restOverlay">
+  <div class="rest-label">Vila</div>
+  <div class="rest-num" id="restNum">60</div>
+  <button class="rest-skip" onclick="skipRest()">Hoppa över</button>
+</div>
+
+<!-- Modal (Exercise detail / Add workout) -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal-sheet" id="modalSheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modalTitle"></div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<div class="filter-overlay" id="filterOverlay" onclick="closeFilterOverlay(event)">
+  <div class="filter-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Filter</div>
+    <div class="filter-section-title">Muskelgrupp</div>
+    <div class="filter-chip-row" id="fmMuscles"></div>
+    <div class="filter-section-title">Svårighet</div>
+    <div class="filter-chip-row" id="fmDiffs"></div>
+    <div class="filter-actions">
+      <button class="filter-reset" onclick="resetFilters()">Återställ</button>
+      <button class="filter-apply" onclick="applyFilters()">Visa resultat</button>
+    </div>
+  </div>
+</div>
+
+<div class="create-ex-overlay" id="createExOverlay" onclick="closeCreateExercise(event)">
+  <div class="create-ex-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Skapa övning</div>
+    <div class="field"><label>Namn</label><input type="text" id="ceName" placeholder="Övningens namn"></div>
+    <div class="field"><label>Ikon (emoji)</label><input type="text" id="ceIcon" placeholder="💪" maxlength="2" style="width:64px"></div>
+    <div class="field"><label>Muskelgrupp</label>
+      <select id="ceMuscle">
+        <option>Bröst</option><option>Rygg</option><option>Ben</option><option>Axlar</option>
+        <option>Armar</option><option>Core</option><option>Helkropp</option><option>Kondition</option>
+      </select>
+    </div>
+    <div class="field"><label>Sekundära muskler</label><input type="text" id="ceSecondary" placeholder="t.ex. Triceps, Axlar"></div>
+    <div class="field"><label>Utrustning</label>
+      <select id="ceEquip">
+        <option>Kroppsvikt</option><option>Hantel</option><option>Kettlebell</option><option>Skivstång</option>
+        <option>Kabelmaskin</option><option>Maskin</option><option>Motståndsband</option><option>Löpband</option>
+      </select>
+    </div>
+    <div class="field"><label>Svårighet</label>
+      <select id="ceDiff"><option>Nybörjare</option><option>Medel</option><option>Avancerad</option></select>
+    </div>
+    <div class="field"><label>Typ</label>
+      <select id="ceType"><option>Styrka</option><option>Kondition</option><option>Rörlighet</option></select>
+    </div>
+    <div class="filter-section-title" style="margin-top:16px">Instruktioner</div>
+    <div id="ceInstructions"></div>
+    <button class="btn-ghost" style="margin-top:8px;font-size:14px" onclick="addInstruction()">+ Lägg till steg</button>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button class="filter-reset" onclick="closeCreateExercise()">Avbryt</button>
+      <button class="filter-apply" onclick="saveCustomExercise()">Spara övning</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────────
+const EXERCISES=[
+  // ── BRÖST ──────────────────────────────────────────────
+  {id:'pushup',name:'Armhävningar',muscle:'Bröst',secondary:'Triceps, Axlar',equip:'Kroppsvikt',icon:'💪',diff:'Nybörjare',type:'Styrka',instructions:['Lägg händerna axelbrett isär på golvet','Håll kroppen rak från huvud till häl','Sänk bröstet mot golvet','Pressa upp till startläget']},
+  {id:'bench_press',name:'Bänkpress',muscle:'Bröst',secondary:'Triceps, Axlar',equip:'Skivstång',icon:'🏋️',diff:'Medel',type:'Styrka',instructions:['Ligg på bänken med fötterna i golvet','Grip stången lite bredare än axelbredd','Sänk stången till bröstet','Pressa upp explosivt']},
+  {id:'incline_bench_press',name:'Incline Bench Press',muscle:'Bröst',secondary:'Triceps, Axlar',equip:'Skivstång',icon:'🏋️',diff:'Medel',type:'Styrka',instructions:['Ställ bänken på 30–45°','Grip stången axelbrett','Sänk stången mot övre bröstet','Pressa upp och in']},
+  {id:'db_bench_press',name:'Dumbbell Bench Press',muscle:'Bröst',secondary:'Triceps, Axlar',equip:'Hantel',icon:'💪',diff:'Nybörjare',type:'Styrka',instructions:['Ligg på bänk med en hantel i varje hand','Hantelerna vid sidan av bröstet','Pressa rakt upp','Sänk kontrollerat']},
+  {id:'db_incline_press',name:'Dumbbell Incline Press',muscle:'Bröst',secondary:'Axlar, Triceps',equip:'Hantel',icon:'💪',diff:'Medel',type:'Styrka',instructions:['Bänk på 30–45°, hantel i varje hand','Hantelerna vid övre bröstet','Pressa upp','Sänk kontrollerat till startläge']},
+  {id:'db_floor_press',name:'Dumbbell Floor Press',muscle:'Bröst',secondary:'Triceps, Axlar',equip:'Hantel',icon:'💪',diff:'Nybörjare',type:'Styrka',instructions:['Ligg på golvet med knäna böjda','Hantel i varje hand vid sidan av bröstet','Pressa rakt upp','Sänk tills armbågarna nuddar golvet']},
+  {id:'db_incline_fly',name:'Dumbbell Incline Fly',muscle:'Bröst',secondary:'Axlar',equip:'Hantel',icon:'🦅',diff:'Medel',type:'Styrka',instructions:['Bänk på 30–45°, hantel i varje hand','Armarna nästan raka, lätt böjda i armbågen','Sänk hantelerna i en vid båge','Pressa ihop framför bröstet']},
+  {id:'cable_fly',name:'Cable Fly',muscle:'Bröst',secondary:'Axlar',equip:'Kabelmaskin',icon:'🔗',diff:'Nybörjare',type:'Styrka',instructions:['Ställ kabler i brösthöjd','Stå i mitten, ett steg framåt','Dra handtagen framåt och ihop','Kontrollera tillbaka']},
+  {id:'push_up_diamond',name:'Diamond Push-Up',muscle:'Bröst',secondary:'Triceps',equip:'Kroppsvikt',icon:'💎',diff:'Medel',type:'Styrka',instructions:['Händerna tätt ihop, tummar och pekfingrar bildar en romb','Kroppen rak','Sänk bröstet mot händerna','Pressa upp']},
+  {id:'machine_chest_press',name:'Machine Chest Press',muscle:'Bröst',secondary:'Triceps, Axlar',equip:'Maskin',icon:'🔩',diff:'Nybörjare',type:'Styrka',instructions:['Justera sätet, händtagen vid bröstnivå','Grip handtagen, fötterna i golvet','Pressa rakt framåt','Kontrollera tillbaka']},
+
+  // ── RYGG ───────────────────────────────────────────────
+  {id:'pullup',name:'Chins (underhand)',muscle:'Rygg',secondary:'Biceps',equip:'Kroppsvikt',icon:'🏋️',diff:'Medel',type:'Styrka',instructions:['Grip stången underhands, axelbrett','Häng med raka armar','Dra dig upp tills hakan är över stången','Sänk kontrollerat']},
+  {id:'pull_up',name:'Pull-Up (overhand)',muscle:'Rygg',secondary:'Biceps, Axlar',equip:'Kroppsvikt',icon:'🏋️',diff:'Medel',type:'Styrka',instructions:['Grip stången överhands, lite bredare än axelbredd','Häng med raka armar','Dra dig upp tills bröstet nuddar stången','Sänk kontrollerat']},
+  {id:'inverted_row',name:'Inverted Row',muscle:'Rygg',secondary:'Biceps, Core',equip:'Kroppsvikt',icon:'🔄',diff:'Nybörjare',type:'Styrka',instructions:['Ligg under en stång i höfthöjd','Grip stången, kroppen rak','Dra bröstet upp mot stången','Sänk kontrollerat']},
+  {id:'deadlift',name:'Marklyft',muscle:'Rygg',secondary:'Ben, Rumpa',equip:'Skivstång',icon:'🏋️',diff:'Avancerad',type:'Styrka',instructions:['Stå med stången över fotmitt','Böj i höft och knä, rygg rak','Grip stången axelbrett','Pressa marken ifrån dig, höfterna framåt']},
+  {id:'lat_pulldown',name:'Latsdrag',muscle:'Rygg',secondary:'Biceps',equip:'Kabelmaskin',icon:'🔗',diff:'Nybörjare',type:'Styrka',instructions:['Sitt vid maskinen och greppa stången brett','Dra ner stången till övre bröstet','Håll armbågarna nere och bakåt','Kontrollera uppgången']},
+  {id:'cable_row',name:'Kabeldrag sittande',muscle:'Rygg',secondary:'Biceps, Axlar',equip:'Kabelmaskin',icon:'🔗',diff:'Nybörjare',type:'Styrka',instructions:['Sitt med fötterna mot plattformen','Håll ryggen rak','Dra handtaget mot magen','Pressa ihop skulderbladen']},
+  {id:'db_bent_row',name:'Dumbbell Bent Over Row',muscle:'Rygg',secondary:'Biceps, Axlar',equip:'Hantel',icon:'💪',diff:'Nybörjare',type:'Styrka',instructions:['Böj dig framåt i höften, ryggen rak','Hantel i varje hand, armarna hängande','Dra hantelerna mot höfterna','Pressa skulderbladen ihop']},
+  {id:'barbell_row',name:'Barbell Bent Over Row',muscle:'Rygg',secondary:'Biceps, Axlar',equip:'Skivstång',icon:'🏋️',diff:'Medel',type:'Styrka',instructions:['Böj dig 45° framåt, ryggen rak','Grip stången axelbrett underhands','Dra stången mot naveln','Sänk kontrollerat']},
+  {id:'db_pullover',name:'Dumbbell Pullover',muscle:'Rygg',secondary:'Bröst, Triceps',equip:'Hantel',icon:'💪',diff:'Nybörjare',type:'Styrka',instructions:['Ligg tvärs över bänk, överkropp plant','Håll en hantel med båda händer ovan bröstet','Sänk hanteln bakom huvudet i en båge','Dra tillbaka upp']},
+  {id:'superman',name:'Superman',muscle:'Rygg',secondary:'Rumpa',equip:'Kroppsvikt',icon:'🦸',diff:'Nybörjare',type:'Styrka',instructions:['Ligg på mage, armar sträckta framåt','Lyft armar och ben från golvet simultant','Håll 2–3 sek i toppläget','Sänk kontrollerat']},
+  {id:'seated_row_machine',name:'Seated Row Machine',muscle:'Rygg',secondary:'Biceps, Axlar',equip:'Maskin',icon:'🔩',diff:'Nybörjare',type:'Styrka',instructions:['Sitt i maskinen, bröst mot stödplattan','Grip handtagen','Dra handtagen mot kroppen','Kontrollera tillbaka']},
+
+  // ── BEN ────────────────────────────────────────────────
+  {id:'squat',name:'Knäböj (kroppsvikt)',muscle:'Ben',secondary:'Rumpa, Core',equip:'Kroppsvikt',icon:'🦵',diff:'Nybörjare',type:'Styrka',instructions:['Stå axelbrett med fötterna','Sänk höfterna bakåt och nedåt','Knäna följer tårnas riktning','Pressa upp genom hälarna']},
+  {id:'barbell_squat',name:'Barbell Squat',muscle:'Ben',secondary:'Rumpa, Core',equip:'Skivstång',icon:'🏋️',diff:'Medel',type:'Styrka',instructions:['Stång på övre ryggen, axelbrett fötter','Bröst upprätt, ryggen neutral','Sänk höfterna nedåt och bakåt','Pressa upp explosivt']},
+  {id:'goblet_squat',name:'Goblet Squat',muscle:'Ben',secondary:'Core, Rumpa',equip:'Kettlebell',icon:'🫙',diff:'Nybörjare',type:'Styrka',instructions:['Håll kettlebell mot bröstet','Fötterna bredare än axelbrett','Böj knäna och sänk dig djupt','Pressa upp med bröst upprätt']},
+  {id:'lunges',name:'Utfall',muscle:'Ben',secondary:'Rumpa, Core',equip:'Kroppsvikt',icon:'🦵',diff:'Nybörjare',type:'Styrka',instructions:['Stå med fötterna ihop','Ta ett stort steg framåt','Böj båda knäna till 90°','Pressa upp och byt ben']},
+  {id:'bulgarian_split_squat',name:'Bulgarian Split Squat',muscle:'Ben',secondary:'Rumpa, Core',equip:'Kroppsvikt',icon:'🦵',diff:'Medel',type:'Styrka',instructions:['Bakre foten på en bänk','Fram-foten ett stort steg framåt','Sänk bakre knäet mot golvet','Pressa upp via framfoten']},
+  {id:'leg_press',name:'Benpress',muscle:'Ben',secondary:'Rumpa',equip:'Maskin',icon:'🦵',diff:'Nybörjare',type:'Styrka',instructions:['Sitt i maskinen med fötterna axelbrett','Böj knäna till 90°','Pressa plattan ifrån dig','Sträck inte ut knäna helt']},
+  {id:'leg_extension',name:'Leg Extension',muscle:'Ben',secondary:'',equip:'Maskin',icon:'🦵',diff:'Nybörjare',type:'Styrka',instructions:['Sitt i maskinen, underben mot kudden','Håll ryggen mot ryggstödet','Sträck ut benen till horisontellt','Sänk kontrollerat']},
+  {id:'leg_curl',name:'Leg Curl',muscle:'Ben',secondary:'',equip:'Maskin',icon:'🦵',diff:'Nybörjare',type:'Styrka',instructions:['Ligg i maskinen (eller sitt), vaden mot kudden','Böj knäna och dra hälarna mot rumpan','Håll i toppläget en sekund','Sänk kontrollerat']},
+  {id:'kb_swing',name:'Kettlebell Swing',muscle:'Ben',secondary:'Rygg, Rumpa',equip:'Kettlebell',icon:'⚡',diff:'Medel',type:'Styrka',instructions:['Stå axelbrett, kettlebell mellan benen','Böj i höften, svinga bakåt','Explosiv höftrörelse framåt, svinga upp till brösthöjd','Kontrollera pendeln tillbaka']},
+  {id:'kb_sumo_deadlift',name:'Kettlebell Sumo Deadlift',muscle:'Ben',secondary:'Rygg, Rumpa',equip:'Kettlebell',icon:'🫙',diff:'Nybörjare',type:'Styrka',instructions:['Brett fotläge, tår utåt','Kettlebell mellan fötterna','Höft och knä böjt, rygg rak','Pressa upp, sträck höft och knä simultant']},
+  {id:'db_front_squat',name:'Dumbbell Front Squat',muscle:'Ben',secondary:'Core, Rumpa',equip:'Hantel',icon:'💪',diff:'Nybörjare',type:'Styrka',instructions:['Håll hantel i varje hand på axlarna','Fötterna axelbrett','Sänk rakt ner, bröst upprätt','Pressa upp']},
+  {id:'db_hip_thrust',name:'Dumbbell Hip Thrust',muscle:'Ben',secondary:'Core',equip:'Hantel',icon:'💪',diff:'Nybörjare',type:'Styrka',instructions:['Övre rygg mot bänk, fötter i golvet','Hantel på höfterna','Sänk rumpan mot golvet','Pressa höfterna rakt upp, kläm rumpan']},
+  {id:'db_rdl',name:'Romanian Deadlift (DB)',muscle:'Ben',secondary:'Rygg, Rumpa',equip:'Hantel',icon:'💪',diff:'Nybörjare',type:'Styrka',instructions:['Stå med hantel i varje hand framför låren','Böj i höften, hantelerna glider längs benen','Känn sträcket i baklåren','Pressa höfterna framåt till startläget']},
+  {id:'calf_raise',name:'Standing Calf Raise',muscle:'Ben',secondary:'',equip:'Kroppsvikt',icon:'🦶',diff:'Nybörjare',type:'Styrka',instructions:['Stå på kanten av ett steg','Sänk hälarna under stegnivå','Pressa upp på tårna','Håll i toppläget en sekund']},
+  {id:'step_ups',name:'Step-Ups',muscle:'Ben',secondary:'Rumpa, Core',equip:'Kroppsvikt',icon:'🦵',diff:'Nybörjare',type:'Styrka',instructions:['Stå framför en stabil yta (bänk/steg)','Kliv upp med ett ben','Ta med dig det andra benet','Kliv ner kontrollerat och byt']},
+  {id:'box_squat',name:'Box Squat',muscle:'Ben',secondary:'Rumpa, Core',equip:'Kroppsvikt',icon:'📦',diff:'Nybörjare',type:'Styrka',instructions:['Stå framför en låg bänk eller box','Axelbrett fotläge','Sänk dig tills du nuddar boxen','Pressa upp utan att gunga']},
+  {id:'pistol_squat',name:'Pistol Squat',muscle:'Ben',secondary:'Core, Rumpa',equip:'Kroppsvikt',icon:'🦵',diff:'Avancerad',type:'Styrka',instructions:['Stå på ett ben, det andra rakt framåt','Armarna ut för balans','Sänk på ett ben så djupt du kan','Pressa upp']},
+  {id:'glute_bridge',name:'Glute Bridge',muscle:'Ben',secondary:'Core',equip:'Kroppsvikt',icon:'🌉',diff:'Nybörjare',type:'Styrka',instructions:['Ligg på rygg, knäna böjda, fötter i golvet','Pressa höfterna rakt upp','Kläm rumpan hårt i toppläget','Sänk kontrollerat']},
+
+  // ── AXLAR ──────────────────────────────────────────────
+  {id:'shoulder_press',name:'Dumbbell Shoulder Press',muscle:'Axlar',secondary:'Triceps',equip:'Hantel',icon:'💪',diff:'Nybörjare',type:'Styrka',instructions:['Sitt eller stå med hantel i varje hand','Hantelerna vid öronen','Pressa rakt upp','Sänk kontrollerat till öronnivå']},
+  {id:'overhead_press',name:'Overhead Press (Barbell)',muscle:'Axlar',secondary:'Triceps, Core',equip:'Skivstång',icon:'🏋️',diff:'Medel',type:'Styrka',instructions:['Stå med stången vid brösthöjd','Grip axelbrett','Pressa rakt upp tills armarna är raka','Sänk kontrollerat till startläge']},
+  {id:'lateral_raise',name:'Lateral Raise',muscle:'Axlar',secondary:'',equip:'Hantel',icon:'💪',diff:'Nybörjare',type:'Styrka',instructions:['Stå med hantel i varje hand längs sidan','Lätt böjda armar','Lyft hantelerna till sidan upp till axelhöjd','Sänk kontrollerat']},
+  {id:'front_raise',name:'Front Raise',muscle:'Axlar',secondary:'',equip:'Hantel',icon:'💪',diff:'Nybörjare',type:'Styrka',instructions:['Stå med hantel i varje hand','Lyft en hantel i taget rakt framåt till axelhöjd','Håll armbågen lätt böjd','Sänk kontrollerat och byt arm']},
+  {id:'rear_delt_fly',name:'Rear Delt Fly',muscle:'Axlar',secondary:'Rygg',equip:'Hantel',icon:'🦅',diff:'Nybörjare',type:'Styrka',instructions:['Böj dig 90° framåt, rygg rak','Hantel i varje hand hängande','Lyft hantelerna ut till sidan','Kläm skulderbladen ihop i toppen']},
+  {id:'face_pull',name:'Face Pull',muscle:'Axlar',secondary:'Rygg',equip:'Kabelmaskin',icon:'🔗',diff:'Nybörjare',type:'Styrka',instructions:['Ställ kabeln i ögonhöjd','Dra mot ansiktet med armbågarna högt','Pressa skulderbladen ihop','Kontrollera tillbaka']},
+  {id:'band_pull_apart',name:'Band Pull-Apart',muscle:'Axlar',secondary:'Rygg',equip:'Motståndsband',icon:'🔴',diff:'Nybörjare',type:'Styrka',instructions:['Håll bandet med båda händer framför bröstet, axelbrett','Sträck ut armarna','Dra bandet isär tills det nuddar bröstet','Kontrollera tillbaka']},
+  {id:'handstand_pushup',name:'Handstand Push-Up',muscle:'Axlar',secondary:'Triceps, Core',equip:'Kroppsvikt',icon:'🤸',diff:'Avancerad',type:'Styrka',instructions:['Stå på händer mot en vägg','Armarna raka, lägg händerna axelbrett','Böj armbågarna, sänk huvudet mot golvet','Pressa upp till startläge']},
+
+  // ── ARMAR ──────────────────────────────────────────────
+  {id:'dumbbell_curl',name:'Dumbbell Bicep Curl',muscle:'Armar',secondary:'Underarmar',equip:'Hantel',icon:'💪',diff:'Nybörjare',type:'Styrka',instructions:['Stå med en hantel i varje hand','Armarna längs sidan','Curl upp mot axeln','Sänk kontrollerat']},
+  {id:'hammer_curl',name:'Hammer Curl',muscle:'Armar',secondary:'Underarmar',equip:'Hantel',icon:'🔨',diff:'Nybörjare',type:'Styrka',instructions:['Hantel i varje hand, neutralt grepp (tummen upp)','Håll armbågarna stilla längs sidan','Curl upp till axeln','Sänk kontrollerat']},
+  {id:'barbell_curl',name:'Barbell Curl',muscle:'Armar',secondary:'Underarmar',equip:'Skivstång',icon:'🏋️',diff:'Nybörjare',type:'Styrka',instructions:['Grip stången underhands, axelbrett','Armbågarna stilla vid sidan','Curl upp till axlarna','Sänk kontrollerat']},
+  {id:'zottman_curl',name:'Zottman Curl',muscle:'Armar',secondary:'Underarmar',equip:'Hantel',icon:'🔄',diff:'Medel',type:'Styrka',instructions:['Curl upp med underhands grepp','Rotera handleden i toppen (tummen nedåt)','Sänk med överhands grepp','Rotera tillbaka i botten']},
+  {id:'tricep_dips',name:'Dips',muscle:'Armar',secondary:'Bröst, Axlar',equip:'Kroppsvikt',icon:'💪',diff:'Medel',type:'Styrka',instructions:['Grip parallella stänger','Sänk kroppen ned tills armbågarna är 90°','Pressa upp','Luta dig inte för mycket framåt']},
+  {id:'cable_tricep_pushdown',name:'Cable Tricep Pushdown',muscle:'Armar',secondary:'',equip:'Kabelmaskin',icon:'🔗',diff:'Nybörjare',type:'Styrka',instructions:['Stå vid kabelmaskin, handtaget i brösthöjd','Armbågarna tätt mot sidan','Tryck handtaget rakt ner tills armarna är raka','Kontrollera tillbaka']},
+  {id:'db_tricep_kickback',name:'Dumbbell Tricep Kickback',muscle:'Armar',secondary:'',equip:'Hantel',icon:'💪',diff:'Nybörjare',type:'Styrka',instructions:['Böj framåt, armbågen i 90°','Sträck ut armen bakåt tills den är rak','Håll armbågen stilla','Böj tillbaka kontrollerat']},
+  {id:'skull_crusher',name:'Skull Crusher',muscle:'Armar',secondary:'',equip:'Hantel',icon:'💀',diff:'Medel',type:'Styrka',instructions:['Ligg på bänk, hantel i varje hand ovan bröstet','Armbågarna pekande uppåt','Böj armbågarna, sänk hantelerna mot tinningarna','Pressa upp']},
+  {id:'overhead_tricep_ext',name:'Overhead Tricep Extension',muscle:'Armar',secondary:'',equip:'Hantel',icon:'💪',diff:'Nybörjare',type:'Styrka',instructions:['Stå eller sitt, håll en hantel med båda händer ovanför huvudet','Armbågarna tätt vid öronen','Böj armbågarna, sänk hanteln bakom huvudet','Pressa upp']},
+
+  // ── CORE ───────────────────────────────────────────────
+  {id:'plank',name:'Plank',muscle:'Core',secondary:'Axlar, Rygg',equip:'Kroppsvikt',icon:'🧘',diff:'Nybörjare',type:'Styrka',isTimer:true,instructions:['Lägg dig i push-up-position','Vila på underarmarna','Håll kroppen helt rak','Andas kontrollerat']},
+  {id:'situp',name:'Situps',muscle:'Core',secondary:'Höftböjare',equip:'Kroppsvikt',icon:'🧘',diff:'Nybörjare',type:'Styrka',instructions:['Ligg på rygg med knäna böjda','Händerna bakom huvudet','Lyft överkroppen mot knäna','Sänk kontrollerat']},
+  {id:'crunches',name:'Crunches',muscle:'Core',secondary:'',equip:'Kroppsvikt',icon:'🧘',diff:'Nybörjare',type:'Styrka',instructions:['Ligg på rygg, knäna böjda','Händerna vid tinningarna','Curl övre ryggen upp mot knäna','Sänk kontrollerat']},
+  {id:'russian_twist',name:'Russian Twist',muscle:'Core',secondary:'Obliques',equip:'Kroppsvikt',icon:'🌀',diff:'Nybörjare',type:'Styrka',instructions:['Sitt med knäna böjda och fötterna lätt lyfta','Luta dig lite bakåt','Rotera överkroppen sida till sida','Håll core spänt']},
+  {id:'knee_raise',name:'Hanging Knee Raise',muscle:'Core',secondary:'Höftböjare',equip:'Kroppsvikt',icon:'🧘',diff:'Medel',type:'Styrka',instructions:['Häng i en pull-up stång','Håll kroppen stilla','Lyft knäna mot bröstet','Sänk kontrollerat utan att gunga']},
+  {id:'leg_raise_lying',name:'Lying Leg Raise',muscle:'Core',secondary:'Höftböjare',equip:'Kroppsvikt',icon:'🧘',diff:'Medel',type:'Styrka',instructions:['Ligg på rygg, händerna under rumpan','Benen raka, lätt böjda','Lyft benen till 90°','Sänk utan att nudda golvet']},
+  {id:'plank_shoulder_tap',name:'Plank Shoulder Tap',muscle:'Core',secondary:'Axlar, Rumpa',equip:'Kroppsvikt',icon:'🧘',diff:'Medel',type:'Styrka',instructions:['Push-up position, händer under axlarna','Håll höfterna stilla','Lyft höger hand, nudda vänster axel','Byt sida, håll balansen']},
+  {id:'bicycle_crunch',name:'Bicycle Crunch',muscle:'Core',secondary:'Obliques',equip:'Kroppsvikt',icon:'🚴',diff:'Nybörjare',type:'Styrka',instructions:['Ligg på rygg, händerna vid öronen','Lyft axlarna från golvet','Dra ena knäet mot bröstet, rotera mot det','Byt sida i ett cyklande rörelsemönster']},
+  {id:'dead_bug',name:'Dead Bug',muscle:'Core',secondary:'',equip:'Kroppsvikt',icon:'🐛',diff:'Nybörjare',type:'Styrka',instructions:['Ligg på rygg, armar raka upp, knäna böjda 90°','Håll ryggen tryckt mot golvet','Sänk höger arm och vänster ben simultant','Dra tillbaka och byt sida']},
+  {id:'plank_jacks',name:'Plank Jacks',muscle:'Core',secondary:'Ben, Axlar',equip:'Kroppsvikt',icon:'⚡',diff:'Medel',type:'Kondition',isTimer:true,instructions:['Push-up position','Hoppa fötterna isär och ihop (som jumping jacks)','Håll höfterna nere','Håll ett jämnt tempo']},
+  {id:'ab_wheel',name:'Ab Wheel Rollout',muscle:'Core',secondary:'Axlar, Rygg',equip:'Kroppsvikt',icon:'🌀',diff:'Avancerad',type:'Styrka',instructions:['Knäna i golvet, håll ab-hjulet','Rulla ut långsamt tills kroppen är nästan parallell med golvet','Håll core hårt spänt','Dra tillbaka med magen']},
+
+  // ── KONDITION ──────────────────────────────────────────
+  {id:'burpee',name:'Burpees',muscle:'Helkropp',secondary:'Core, Ben, Bröst',equip:'Kroppsvikt',icon:'⚡',diff:'Medel',type:'Kondition',instructions:['Stå rakt','Hoppa ner i push-up-position','Gör en armhävning','Hoppa upp med händerna ovan huvud']},
+  {id:'jumping_jacks',name:'Jumping Jacks',muscle:'Kondition',secondary:'Ben, Axlar',equip:'Kroppsvikt',icon:'⭐',diff:'Nybörjare',type:'Kondition',isTimer:true,instructions:['Stå med fötterna ihop, armar längs sidan','Hoppa ut fötterna och lyft armarna till sidan','Klappa händerna ovan huvud','Hoppa tillbaka till startläget']},
+  {id:'high_knees',name:'High Knees',muscle:'Kondition',secondary:'Core, Ben',equip:'Kroppsvikt',icon:'🏃',diff:'Nybörjare',type:'Kondition',isTimer:true,instructions:['Stå rakt','Spring på stället med höga knän','Knäna upp till höfthöjd','Håll ett snabbt tempo']},
+  {id:'mountain_climbers',name:'Mountain Climbers',muscle:'Kondition',secondary:'Core, Ben',equip:'Kroppsvikt',icon:'🧗',diff:'Nybörjare',type:'Kondition',isTimer:true,instructions:['Push-up position','Dra ett knä snabbt mot bröstet','Byt ben explosivt','Håll höfterna nere och jämn takt']},
+  {id:'jump_squat',name:'Jump Squat',muscle:'Kondition',secondary:'Ben, Rumpa',equip:'Kroppsvikt',icon:'⚡',diff:'Medel',type:'Kondition',instructions:['Axelbrett fotläge','Sänk ner i knäböj','Hoppa explosivt upp','Landa mjukt och gå direkt ner i nästa rep']},
+  {id:'box_jump',name:'Box Jump',muscle:'Kondition',secondary:'Ben, Rumpa',equip:'Kroppsvikt',icon:'📦',diff:'Medel',type:'Kondition',instructions:['Stå framför en box eller bänk','Böj knäna lätt','Hoppa explosivt upp på boxen','Kliv ner kontrollerat']},
+  {id:'treadmill',name:'Treadmill',muscle:'Kondition',secondary:'Ben',equip:'Löpband',icon:'🏃',diff:'Nybörjare',type:'Kondition',isTimer:true,instructions:['Ställ önskad hastighet','Håll upprätt hållning','Titta rakt fram','Anpassa fart efter syfte (gång/löpning/intervall)']},
+  {id:'stationary_bike',name:'Stationary Bike',muscle:'Kondition',secondary:'Ben',equip:'Maskin',icon:'🚴',diff:'Nybörjare',type:'Kondition',isTimer:true,instructions:['Justera sadelhöjd, benen nästan raka vid botten','Håll upprätt hållning','Pedala med jämnt motstånd','Anpassa intensitet efter syfte']},
+];
+
+const EQUIP_CHIPS=['Kroppsvikt','Hantel','Kettlebell','Skivstång','Kabelmaskin','Maskin','Motståndsband','Löpband'];
+const MUSCLE_FILTER=['Alla','Bröst','Rygg','Ben','Axlar','Armar','Core','Helkropp','Kondition'];
+
+// ── FOODS (per 100g) ──────────────────────────────────────
+const FOODS=[
+  // Kött & Fisk
+  {id:'chicken_breast',  name:'Kycklingfilé',           cal:165, prot:31,  carbs:0,   fat:3.6},
+  {id:'ground_beef',     name:'Nötfärs (10%)',           cal:152, prot:20,  carbs:0,   fat:8},
+  {id:'salmon',          name:'Lax',                     cal:208, prot:20,  carbs:0,   fat:13},
+  {id:'tuna_canned',     name:'Tonfisk (konserv)',        cal:116, prot:26,  carbs:0,   fat:1},
+  {id:'egg',             name:'Ägg',                     cal:155, prot:13,  carbs:1.1, fat:11},
+  {id:'shrimp',          name:'Räkor',                   cal:99,  prot:21,  carbs:0,   fat:1.1},
+  // Mejeri
+  {id:'milk',            name:'Mjölk (3%)',               cal:61,  prot:3.2, carbs:4.7, fat:3},
+  {id:'greek_yogurt',    name:'Grekisk yoghurt (0%)',     cal:59,  prot:10,  carbs:3.6, fat:0.4},
+  {id:'cottage_cheese',  name:'Keso',                    cal:72,  prot:12,  carbs:2.7, fat:1},
+  {id:'cheddar',         name:'Ost (28%)',                cal:280, prot:25,  carbs:0,   fat:20},
+  {id:'quark',           name:'Kvarg',                   cal:66,  prot:10.5,carbs:3.8, fat:0.2},
+  // Spannmål
+  {id:'oats',            name:'Havregryn',               cal:389, prot:17,  carbs:66,  fat:7},
+  {id:'rice_cooked',     name:'Ris (kokt)',               cal:130, prot:2.7, carbs:28,  fat:0.3},
+  {id:'pasta_cooked',    name:'Pasta (kokt)',             cal:131, prot:5,   carbs:25,  fat:1.1},
+  {id:'white_bread',     name:'Vitt bröd',               cal:265, prot:9,   carbs:49,  fat:3.2},
+  {id:'rye_bread',       name:'Rågbröd',                 cal:259, prot:9,   carbs:45,  fat:3.3},
+  {id:'tortilla',        name:'Tortillabröd',            cal:303, prot:8,   carbs:52,  fat:6.7},
+  // Grönsaker
+  {id:'broccoli',        name:'Broccoli',                cal:34,  prot:2.8, carbs:7,   fat:0.4},
+  {id:'spinach',         name:'Spenat',                  cal:23,  prot:2.9, carbs:3.6, fat:0.4},
+  {id:'potato',          name:'Potatis (kokt)',           cal:87,  prot:2.1, carbs:19,  fat:0.1},
+  {id:'sweet_potato',    name:'Sötpotatis',              cal:86,  prot:1.6, carbs:20,  fat:0.1},
+  // Frukt
+  {id:'banana',          name:'Banan',                   cal:89,  prot:1.1, carbs:23,  fat:0.3},
+  {id:'apple',           name:'Äpple',                   cal:52,  prot:0.3, carbs:14,  fat:0.2},
+  {id:'blueberry',       name:'Blåbär',                  cal:57,  prot:0.7, carbs:14,  fat:0.3},
+  // Nötter & övrigt
+  {id:'almonds',         name:'Mandlar',                 cal:579, prot:21,  carbs:22,  fat:50},
+  {id:'peanut_butter',   name:'Jordnötssmör',            cal:588, prot:25,  carbs:20,  fat:50},
+  {id:'olive_oil',       name:'Olivolja',                cal:884, prot:0,   carbs:0,   fat:100},
+  {id:'avocado',         name:'Avokado',                 cal:160, prot:2,   carbs:9,   fat:15},
+  {id:'protein_powder',  name:'Proteinpulver (vanilj)',  cal:390, prot:75,  carbs:10,  fat:5},
+  {id:'kidney_beans',    name:'Kidneybönor (kokt)',      cal:127, prot:8.7, carbs:22,  fat:0.5},
+];
+
+// ── THEMES ────────────────────────────────────────────────
+const THEMES={
+  fortis:{
+    name:'Fortis',
+    accent:'#E85D26', accent2:'#2A6AE8', accentLight:'#FEF0EB',
+    bg:'#F2F1ED', card:'#FFFFFF', text:'#141414', muted:'#888880',
+    border:'rgba(0,0,0,0.09)', nav:'#FFFFFF', header:'#141414',
+    headerText:'#FFFFFF', outer:'#E8E6E0',
+  },
+  dark:{
+    name:'Dark',
+    accent:'#E85D26', accent2:'#4A8AFF', accentLight:'#2A1A14',
+    bg:'#121212', card:'#1E1E1E', text:'#F0F0EC', muted:'#777770',
+    border:'rgba(255,255,255,0.08)', nav:'#1A1A1A', header:'#0A0A0A',
+    headerText:'#F0F0EC', outer:'#090909',
+  },
+  midnight:{
+    name:'Midnight',
+    accent:'#5B8BFF', accent2:'#E85D26', accentLight:'#131B2E',
+    bg:'#0D1117', card:'#161B22', text:'#E6EDF3', muted:'#7D8590',
+    border:'rgba(255,255,255,0.08)', nav:'#161B22', header:'#0D1117',
+    headerText:'#E6EDF3', outer:'#080B10',
+  },
+  forest:{
+    name:'Forest',
+    accent:'#2D9E5F', accent2:'#2A6AE8', accentLight:'#E6F7ED',
+    bg:'#F0F4F0', card:'#FFFFFF', text:'#1A2E1A', muted:'#6A7A6A',
+    border:'rgba(0,0,0,0.08)', nav:'#FFFFFF', header:'#1A2E1A',
+    headerText:'#FFFFFF', outer:'#E4EAE4',
+  },
+  stone:{
+    name:'Stone',
+    accent:'#6366F1', accent2:'#EC4899', accentLight:'#EDEDFD',
+    bg:'#F5F5F4', card:'#FFFFFF', text:'#1C1917', muted:'#78716C',
+    border:'rgba(0,0,0,0.08)', nav:'#FFFFFF', header:'#1C1917',
+    headerText:'#FFFFFF', outer:'#E7E5E4',
+  },
+};
+
+function applyTheme(id){
+  const t=THEMES[id]||THEMES.fortis;
+  const r=document.documentElement.style;
+  r.setProperty('--accent',t.accent);
+  r.setProperty('--accent2',t.accent2);
+  r.setProperty('--accent-light',t.accentLight);
+  r.setProperty('--bg',t.bg);
+  r.setProperty('--card',t.card);
+  r.setProperty('--text',t.text);
+  r.setProperty('--muted',t.muted);
+  r.setProperty('--border',t.border);
+  r.setProperty('--nav',t.nav);
+  r.setProperty('--header',t.header);
+  r.setProperty('--header-text',t.headerText);
+  r.setProperty('--outer',t.outer);
+  document.body.style.background=t.outer;
+  ST.activeTheme=id;
+}
+
+async function setTheme(id){
+  applyTheme(id);
+  await save('fortis_theme',id);
+  renderProfile();
+}
+
+// ── ACHIEVEMENTS ──────────────────────────────────────────
+const ACHIEVEMENT_DEFS=[
+  {id:'first_workout',  icon:'🏋️', name:'Första passet',    desc:'Slutför ditt första pass'},
+  {id:'workouts_10',    icon:'💪',  name:'10 pass',          desc:'Slutför 10 pass totalt'},
+  {id:'workouts_50',    icon:'🏆',  name:'50 pass',          desc:'Slutför 50 pass totalt'},
+  {id:'workouts_100',   icon:'🥇',  name:'100 pass',         desc:'Slutför 100 pass totalt'},
+  {id:'streak_3',       icon:'🔥',  name:'3 i rad',          desc:'3 dagars träningsstreak'},
+  {id:'streak_7',       icon:'🔥',  name:'Vecka på raken',   desc:'7 dagars träningsstreak'},
+  {id:'streak_30',      icon:'🔥',  name:'Månadsstreak',     desc:'30 dagars träningsstreak'},
+  {id:'early_bird',     icon:'🌅',  name:'Tidig fågel',      desc:'Logga ett pass före 08:00'},
+  {id:'variety',        icon:'🌟',  name:'Allrounder',       desc:'Träna 5 olika muskelgrupper'},
+  {id:'marathon',       icon:'⏱️',  name:'Uthållighet',      desc:'Slutför ett pass längre än 60 min'},
+];
+
+function calcBestStreak(){
+  if(!ST.workoutLog.length)return 0;
+  const dates=[...new Set(ST.workoutLog.map(l=>l.date))].sort();
+  let best=1,cur=1;
+  for(let i=1;i<dates.length;i++){
+    const diff=(new Date(dates[i])-new Date(dates[i-1]))/86400000;
+    if(diff===1){cur++;best=Math.max(best,cur);}else cur=1;
+  }
+  return best;
+}
+
+function evalAchievements(){
+  const unlocked=new Set(ST.achievements||[]);
+  const toUnlock=[];
+  const total=ST.workoutLog.length;
+  const streak=calcStreak();
+  const best=calcBestStreak();
+
+  const check=(id,cond)=>{if(cond&&!unlocked.has(id))toUnlock.push(id);};
+
+  check('first_workout', total>=1);
+  check('workouts_10',   total>=10);
+  check('workouts_50',   total>=50);
+  check('workouts_100',  total>=100);
+  check('streak_3',      streak>=3||best>=3);
+  check('streak_7',      streak>=7||best>=7);
+  check('streak_30',     streak>=30||best>=30);
+  check('variety', (()=>{
+    const muscles=new Set();
+    for(const entry of ST.workoutLog){
+      const w=ST.workouts.find(x=>x.id===entry.workoutId);
+      if(!w)continue;
+      w.exercises.forEach(e=>{const ex=getExercises().find(x=>x.id===e.exerciseId);if(ex)muscles.add(ex.muscle);});
+    }
+    return muscles.size>=5;
+  })());
+  check('early_bird', ST.workoutLog.some(e=>{
+    const h=new Date(e.id).getHours();return h<8;
+  }));
+  check('marathon', ST.workoutLog.some(e=>e.durationMin>=60));
+
+  return toUnlock;
+}
+
+async function checkAchievements(){
+  const newOnes=evalAchievements();
+  if(!newOnes.length)return;
+  ST.achievements=[...(ST.achievements||[]),...newOnes];
+  await save('fortis_achievements',ST.achievements);
+  for(const id of newOnes){
+    const def=ACHIEVEMENT_DEFS.find(a=>a.id===id);
+    if(def)showAchievementToast(def);
+    await new Promise(r=>setTimeout(r,2200));
+  }
+}
+
+function showAchievementToast(def){
+  const el=document.getElementById('achievementToast');
+  el.innerHTML=`<div style="font-size:28px;margin-bottom:4px">${def.icon}</div>
+    <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin-bottom:2px">Achievement unlocked</div>
+    <div style="font-size:15px;font-weight:800;color:var(--text)">${def.name}</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:2px">${def.desc}</div>`;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2000);
+}
+
+// ── STATE ─────────────────────────────────────────────────
+let ST={
+  profile:null,
+  activeTheme:'fortis',
+  obStep:1,
+  obData:{name:'',gender:'male',age:'',height:'',weight:'',goalWeight:'',goal:'lose',activity:'moderate'},
+  macroGoals:{calories:2200,protein:165,carbs:220,fat:73},
+  waterToday:0,
+  waterGoal:2500,
+  activeTab:'Home',
+  selectedDay:new Date().getDay()==0?0:new Date().getDay()-1,
+  workouts:[],
+  workoutLog:[],
+  achievements:[],
+  foodLog:[],
+  _addFoodMeal:null,
+  _addFoodSelected:null,
+  activeWorkout:null,
+  awStartTime:null,
+  awTimerInterval:null,
+  restInterval:null,
+  equipFilter:[],
+  muscleFilter:'Alla',
+  diffFilter:'Alla',
+  searchQ:'',
+  customExercises:[],
+  _createExInstructions:[],
+};
+
+// ── STORAGE ───────────────────────────────────────────────
+async function load(key,def=null){
+  if(!window.storage)return def;
+  try{const r=await window.storage.get(key);return r?JSON.parse(r.value):def;}catch{return def;}
+}
+async function save(key,val){
+  if(!window.storage)return;
+  try{await window.storage.set(key,JSON.stringify(val));}catch{}
+}
+
+// ── INIT ──────────────────────────────────────────────────
+async function init(){
+  ST.profile=await load('fortis_profile');
+  ST.waterToday=await load('fortis_water_'+today(),0);
+  ST.workouts=await load('fortis_workouts',defaultWorkouts());
+  ST.workoutLog=await load('fortis_workoutlog',[]);
+  ST.achievements=await load('fortis_achievements',[]);
+  ST.foodLog=await load('fortis_foodlog',[]);
+  ST.customExercises=await load('fortis_custom_exercises',[]);
+  const savedTheme=await load('fortis_theme','fortis');
+  applyTheme(savedTheme);
+  startSplash();
+}
+
+function today(){return new Date().toISOString().slice(0,10);}
+
+function defaultWorkouts(){
+  return[
+    {id:'w1',name:'Hemmapass',day:0,exercises:[
+      {exerciseId:'situp',sets:3,reps:30,weight:0,restSec:60},
+      {exerciseId:'pushup',sets:3,reps:20,weight:0,restSec:60},
+      {exerciseId:'squat',sets:3,reps:20,weight:20,restSec:90},
+      {exerciseId:'plank',sets:1,durationSec:60,weight:0,restSec:60},
+      {exerciseId:'dumbbell_curl',sets:3,reps:15,weight:12,restSec:60},
+    ]},
+    {id:'w2',name:'Konditionspass',day:2,exercises:[
+      {exerciseId:'burpee',sets:3,reps:12,weight:0,restSec:90},
+      {exerciseId:'lunges',sets:3,reps:20,weight:0,restSec:60},
+      {exerciseId:'russian_twist',sets:3,reps:30,weight:0,restSec:45},
+    ]},
+    {id:'w3',name:'Rygg & Biceps',day:4,exercises:[
+      {exerciseId:'pullup',sets:3,reps:8,weight:0,restSec:120},
+      {exerciseId:'cable_row',sets:3,reps:12,weight:40,restSec:90},
+      {exerciseId:'dumbbell_curl',sets:3,reps:12,weight:14,restSec:60},
+    ]},
+  ];
+}
+
+// ── SPLASH ────────────────────────────────────────────────
+function startSplash(){
+  document.getElementById('splash').style.display='flex';
+  const fill=document.getElementById('splashFill');
+  let p=0;
+  const iv=setInterval(()=>{
+    p+=100/30;fill.style.width=Math.min(p,100)+'%';
+    if(p>=100){clearInterval(iv);endSplash();}
+  },100);
+}
+function endSplash(){
+  document.getElementById('splash').style.opacity='0';
+  document.getElementById('splash').style.transition='opacity 0.4s';
+  setTimeout(()=>{
+    document.getElementById('splash').style.display='none';
+    if(ST.profile){showApp();}else{showOnboarding();}
+  },400);
+}
+
+// ── ONBOARDING ────────────────────────────────────────────
+const OB=[
+  {title:'Välkommen till FORTIS',desc:'Din personliga träningskompis. Sätt upp mål, följ din progress och bli starkare — varje dag.',btn:'Kom igång'},
+  {title:'Om dig',desc:'Vi behöver lite grundläggande info för att anpassa appen till dig.',btn:'Nästa'},
+  {title:'Ditt mål',desc:'Berätta vad du vill uppnå och hur aktiv du är till vardags.',btn:'Beräkna mål'},
+  {title:'Kalori- och makromål',desc:'Baserat på din info har vi räknat ut ditt dagliga mål. Du kan justera det manuellt.',btn:'Acceptera'},
+  {title:'Allt klart!',desc:'',btn:'Starta FORTIS'},
+];
+
+function showOnboarding(){
+  document.getElementById('onboarding').style.display='block';
+  renderOB();
+}
+function renderOB(){
+  const s=ST.obStep;
+  document.getElementById('obSteps').innerHTML=OB.map((_,i)=>`<div class="ob-step${i<s?' done':''}"></div>`).join('');
+  document.getElementById('obTitle').textContent=OB[s-1].title;
+  document.getElementById('obDesc').textContent=OB[s-1].desc;
+  const backBtn=s>1&&s<5?'<button class="btn-ghost" onclick="obBack()">Tillbaka</button>':'';
+  const skipBtn=s===1?'<button class="btn-ghost" onclick="skipOnboarding()">Hoppa över</button>':'';
+  document.getElementById('obFooter').innerHTML=`<button class="btn-primary" onclick="obNext()">${OB[s-1].btn}</button>${backBtn}${skipBtn}`;
+  const body=document.getElementById('obBody');
+  if(s===1){body.innerHTML=`<div style="text-align:center;padding:32px 0"><div style="font-size:64px;margin-bottom:16px">💪</div><p style="font-size:15px;color:var(--muted);line-height:1.7">Logga pass · Spåra kost · Se din progress</p></div>`;}
+  else if(s===2){body.innerHTML=`
+    <div class="field"><label>Namn</label><input type="text" value="${ST.obData.name}" placeholder="Ditt namn" oninput="ST.obData.name=this.value"></div>
+    <div class="field"><label>Kön</label><div class="radio-group">
+      <div class="radio-opt ${ST.obData.gender==='male'?'active':''}" onclick="setOBField('gender','male',this,'radio-opt')">Man</div>
+      <div class="radio-opt ${ST.obData.gender==='female'?'active':''}" onclick="setOBField('gender','female',this,'radio-opt')">Kvinna</div>
+      <div class="radio-opt ${ST.obData.gender==='other'?'active':''}" onclick="setOBField('gender','other',this,'radio-opt')">Annat</div>
+    </div></div>
+    <div class="field"><label>Ålder</label><input type="number" value="${ST.obData.age}" placeholder="år" oninput="ST.obData.age=this.value" min="10" max="99"></div>`;}
+  else if(s===3){body.innerHTML=`
+    <div class="field-row">
+      <div class="field"><label>Längd (cm)</label><input type="number" value="${ST.obData.height}" placeholder="cm" oninput="ST.obData.height=this.value" min="140" max="220"></div>
+      <div class="field"><label>Vikt (kg)</label><input type="number" value="${ST.obData.weight}" placeholder="kg" oninput="ST.obData.weight=this.value" min="40" max="200"></div>
+    </div>
+    <div class="field"><label>Målvikt (kg)</label><input type="number" value="${ST.obData.goalWeight}" placeholder="kg" oninput="ST.obData.goalWeight=this.value"></div>
+    <div class="field"><label>Mål</label><div class="radio-group">
+      <div class="radio-opt ${ST.obData.goal==='lose'?'active':''}" onclick="setOBField('goal','lose',this,'radio-opt')">Gå ner</div>
+      <div class="radio-opt ${ST.obData.goal==='maintain'?'active':''}" onclick="setOBField('goal','maintain',this,'radio-opt')">Hålla vikt</div>
+      <div class="radio-opt ${ST.obData.goal==='gain'?'active':''}" onclick="setOBField('goal','gain',this,'radio-opt')">Bygga muskler</div>
+    </div></div>
+    <div class="field"><label>Aktivitetsnivå</label><select onchange="ST.obData.activity=this.value">
+      <option value="sedentary" ${ST.obData.activity==='sedentary'?'selected':''}>Stillasittande (lite/ingen träning)</option>
+      <option value="light" ${ST.obData.activity==='light'?'selected':''}>Lätt aktiv (1–3 dagar/vecka)</option>
+      <option value="moderate" ${ST.obData.activity==='moderate'?'selected':''}>Måttligt aktiv (3–5 dagar/vecka)</option>
+      <option value="very_active" ${ST.obData.activity==='very_active'?'selected':''}>Mycket aktiv (6–7 dagar/vecka)</option>
+    </select></div>`;}
+  else if(s===4){
+    calcMacros();
+    body.innerHTML=`
+    <div class="macro-preview">
+      <div class="macro-row"><span class="macro-name">Kalorier</span><span class="macro-val">${ST.macroGoals.calories}<span class="macro-unit"> kcal</span></span></div>
+      <div class="macro-row"><span class="macro-name">Protein</span><span class="macro-val">${ST.macroGoals.protein}<span class="macro-unit"> g</span></span></div>
+      <div class="macro-row"><span class="macro-name">Kolhydrater</span><span class="macro-val">${ST.macroGoals.carbs}<span class="macro-unit"> g</span></span></div>
+      <div class="macro-row"><span class="macro-name">Fett</span><span class="macro-val">${ST.macroGoals.fat}<span class="macro-unit"> g</span></span></div>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin-top:14px;line-height:1.6">Beräknat med Mifflin-St Jeor-formeln. Du kan justera detta när som helst under Profil → Inställningar.</p>`;}
+  else if(s===5){body.innerHTML=`<div class="done-screen"><div class="done-icon">🚀</div><div class="done-title">Dags att köra, ${ST.obData.name||'champ'}!</div><div class="done-sub">Ditt program är klart. Börja med att kolla in ditt schema och hoppa in i ditt första pass.</div></div>`;}
+}
+
+function setOBField(field,val,el,cls){
+  ST.obData[field]=val;
+  document.querySelectorAll('.'+cls).forEach(e=>e.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function calcMacros(){
+  const d=ST.obData;
+  const w=parseFloat(d.weight)||80,h=parseFloat(d.height)||175,a=parseInt(d.age)||30;
+  let bmr=d.gender==='female'?(10*w+6.25*h-5*a-161):(10*w+6.25*h-5*a+5);
+  const mult={sedentary:1.2,light:1.375,moderate:1.55,very_active:1.725}[d.activity]||1.55;
+  let tdee=Math.round(bmr*mult);
+  if(d.goal==='lose')tdee-=400;
+  if(d.goal==='gain')tdee+=300;
+  ST.macroGoals={
+    calories:tdee,
+    protein:Math.round(w*2.2),
+    carbs:Math.round((tdee*0.4)/4),
+    fat:Math.round((tdee*0.3)/9),
+  };
+}
+
+function obNext(){
+  if(ST.obStep===5){saveProfile();showApp();return;}
+  ST.obStep++;renderOB();
+}
+function obBack(){ST.obStep--;renderOB();}
+async function skipOnboarding(){
+  ST.obData={name:'',gender:'male',age:25,height:175,weight:75,goalWeight:75,goal:'maintain',activity:'moderate'};
+  ST.macroGoals={calories:2200,protein:165,carbs:220,fat:73};
+  await saveProfile();
+  showApp();
+}
+
+async function saveProfile(){
+  ST.profile={...ST.obData,macroGoals:ST.macroGoals,createdAt:new Date().toISOString()};
+  await save('fortis_profile',ST.profile);
+  await save('fortis_macrogoals',ST.macroGoals);
+  document.getElementById('onboarding').style.display='none';
+}
+
+// ── MAIN APP ──────────────────────────────────────────────
+function showApp(){
+  document.getElementById('onboarding').style.display='none';
+  const app=document.getElementById('app');
+  app.style.display='flex';
+  if(ST.profile){
+    const m=ST.profile.macroGoals||ST.macroGoals;
+    ST.macroGoals=m;
+  }
+  renderHome();
+  renderScheduleSetup();
+  renderLibrary();
+  renderNutrition();
+  renderProfile();
+}
+
+function switchTab(tab){
+  ['Home','Schedule','Library','Nutrition','Profile'].forEach(t=>{
+    document.getElementById('tab'+t).style.display=t===tab?'':'none';
+    document.getElementById('nav'+t).classList.toggle('active',t===tab);
+  });
+  ST.activeTab=tab;
+}
+
+// ── HOME ──────────────────────────────────────────────────
+function renderHome(){
+  const p=ST.profile||{name:'Jens'};
+  document.getElementById('homeGreeting').textContent=p.name||'Jens';
+  document.getElementById('streakCount').textContent=calcStreak();
+  renderCalorieRing(0,ST.macroGoals.calories);
+  renderMacros(0,0,0);
+  renderWater();
+  renderTodayWorkout();
+}
+
+function renderCalorieRing(consumed,goal){
+  const left=Math.max(0,goal-consumed);
+  document.getElementById('calsLeft').textContent=left;
+  const pct=Math.min(consumed/goal,1);
+  const circ=264;
+  document.getElementById('calRing').style.strokeDashoffset=circ-(circ*pct);
+}
+
+function renderMacros(p,c,f){
+  document.getElementById('mProtein').innerHTML=`${p}<span class="rm-unit">g</span>`;
+  document.getElementById('mCarbs').innerHTML=`${c}<span class="rm-unit">g</span>`;
+  document.getElementById('mFat').innerHTML=`${f}<span class="rm-unit">g</span>`;
+  document.getElementById('mProteinBar').style.width=Math.min(p/ST.macroGoals.protein*100,100)+'%';
+  document.getElementById('mCarbsBar').style.width=Math.min(c/ST.macroGoals.carbs*100,100)+'%';
+  document.getElementById('mFatBar').style.width=Math.min(f/ST.macroGoals.fat*100,100)+'%';
+}
+
+function renderWater(){
+  const portions=10;
+  const filled=Math.round((ST.waterToday/ST.waterGoal)*portions);
+  document.getElementById('waterDrops').innerHTML=Array.from({length:portions},(_,i)=>`<div class="drop ${i<filled?'filled':''}"></div>`).join('');
+  document.getElementById('waterLabel').textContent=`${ST.waterToday} / ${ST.waterGoal} ml`;
+}
+
+async function addWater(){
+  ST.waterToday=Math.min(ST.waterToday+250,ST.waterGoal);
+  await save('fortis_water_'+today(),ST.waterToday);
+  renderWater();
+}
+
+function renderTodayWorkout(){
+  const dow=new Date().getDay()==0?6:new Date().getDay()-1;
+  const w=ST.workouts.find(x=>x.day===dow);
+  const card=document.getElementById('todayWorkoutCard');
+  if(!w){card.innerHTML=`<div class="no-workout">Ingen träning schemalagd idag 😴<br><span style="font-size:12px">Lägg till ett pass i Schema</span></div>`;return;}
+  const exs=w.exercises.map(e=>getExercises().find(x=>x.id===e.exerciseId)).filter(Boolean);
+  const muscles=[...new Set(exs.map(e=>e.muscle))];
+  card.innerHTML=`
+  <div class="workout-card-inner">
+    <div style="flex:1;min-width:0">
+      <div class="workout-name">${w.name}</div>
+      <div class="workout-meta">${w.exercises.length} övningar · ~${w.exercises.length*8} min</div>
+      <div class="muscle-badges">${muscles.map((m,i)=>`<span class="badge ${['badge-orange','badge-blue','badge-green'][i%3]}">${m}</span>`).join('')}</div>
+    </div>
+    <button class="btn-start" onclick="startWorkout('${w.id}')">Starta</button>
+  </div>`;
+}
+
+function calcStreak(){
+  if(!ST.workoutLog.length)return 0;
+  let s=0;const d=new Date();
+  while(true){
+    const key=d.toISOString().slice(0,10);
+    if(ST.workoutLog.some(l=>l.date===key)){s++;d.setDate(d.getDate()-1);}
+    else break;
+  }
+  return s;
+}
+
+// ── SCHEDULE ─────────────────────────────────────────────
+function renderScheduleSetup(){
+  const days=['Mån','Tis','Ons','Tor','Fre','Lör','Sön'];
+  const todayDow=new Date().getDay()==0?6:new Date().getDay()-1;
+  const strip=document.getElementById('weekStrip');
+  strip.innerHTML=days.map((d,i)=>{
+    const hasW=ST.workouts.some(w=>w.day===i);
+    return`<div class="day-pill ${i===ST.selectedDay?'active':''}" onclick="selectDay(${i})">
+      <div class="day-name">${d}</div>
+      <div class="day-num" style="${i===todayDow?'color:#E85D26':''}">${i+1}</div>
+      ${hasW?'<div class="day-dot"></div>':'<div style="width:4px;height:4px"></div>'}
+    </div>`;
+  }).join('');
+  renderDaySchedule();
+}
+
+function selectDay(i){
+  ST.selectedDay=i;renderScheduleSetup();}
+
+function renderDaySchedule(){
+  const days=['Måndag','Tisdag','Onsdag','Torsdag','Fredag','Lördag','Söndag'];
+  const body=document.getElementById('schedBody');
+  const ws=ST.workouts.filter(w=>w.day===ST.selectedDay);
+  let html=`<div class="day-title">${days[ST.selectedDay]}</div>`;
+  ws.forEach(w=>{
+    const exs=w.exercises.map(e=>({...e,ex:getExercises().find(x=>x.id===e.exerciseId)})).filter(e=>e.ex);
+    html+=`<div class="workout-block">
+      <div class="wb-header"><div class="wb-name">${w.name}</div><div class="wb-time">${w.exercises.length} övn · ~${w.exercises.length*8} min</div></div>
+      <div class="wb-exercises">
+        ${exs.map(e=>`<div class="wb-ex"><div class="wb-ex-dot"></div>${e.ex.name}<div class="wb-ex-detail">${e.sets}×${e.reps||e.durationSec+'s'}${e.weight?' @ '+e.weight+'kg':''}</div></div>`).join('')}
+      </div>
+      <div class="wb-footer"><button class="btn-start-full" onclick="startWorkout('${w.id}')">Starta pass</button></div>
+    </div>`;
+  });
+  html+=`<button class="add-workout-btn" onclick="showAddWorkout()">+ Lägg till pass</button>`;
+  body.innerHTML=html;
+}
+
+function showAddWorkout(){
+  document.getElementById('modalTitle').textContent='Nytt pass';
+  document.getElementById('modalBody').innerHTML=`
+    <div class="field"><label>Passnamn</label><input type="text" id="newWName" placeholder="t.ex. Benstyrka"></div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Övningar läggs till från biblioteket efter att passet skapats.</p>
+    <button class="btn-primary" onclick="createWorkout()">Skapa pass</button>`;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function createWorkout(){
+  const name=document.getElementById('newWName').value.trim();
+  if(!name)return;
+  const w={id:'w'+Date.now(),name,day:ST.selectedDay,exercises:[]};
+  ST.workouts.push(w);
+  save('fortis_workouts',ST.workouts);
+  closeModal();
+  renderScheduleSetup();
+}
+
+// ── LIBRARY ───────────────────────────────────────────────
+function getExercises(){return[...EXERCISES,...ST.customExercises];}
+
+function renderLibrary(){
+  const chips=document.getElementById('equipChips');
+  chips.innerHTML=EQUIP_CHIPS.map(c=>`<div class="chip ${ST.equipFilter.includes(c)?'active':''}" onclick="toggleChip('${c}')">${c}</div>`).join('');
+  updateFilterBadge();
+  filterExercises();
+}
+
+function toggleChip(c){
+  ST.equipFilter=ST.equipFilter.includes(c)?ST.equipFilter.filter(x=>x!==c):[...ST.equipFilter,c];
+  renderLibrary();
+}
+
+function updateFilterBadge(){
+  const count=(ST.muscleFilter!=='Alla'?1:0)+(ST.diffFilter!=='Alla'?1:0);
+  const badge=document.getElementById('filterBadge');
+  if(!badge)return;
+  if(count>0){badge.textContent=count;badge.style.display='inline';}
+  else{badge.style.display='none';}
+}
+
+function filterExercises(){
+  ST.searchQ=document.getElementById('libSearch')?.value.toLowerCase()||'';
+  let exs=getExercises();
+  if(ST.equipFilter.length)exs=exs.filter(e=>ST.equipFilter.includes(e.equip));
+  if(ST.muscleFilter!=='Alla')exs=exs.filter(e=>e.muscle===ST.muscleFilter);
+  if(ST.diffFilter!=='Alla')exs=exs.filter(e=>e.diff===ST.diffFilter);
+  if(ST.searchQ)exs=exs.filter(e=>e.name.toLowerCase().includes(ST.searchQ));
+  const colors={'Kroppsvikt':'#FEF0EB','Hantel':'#EBF0FE','Kettlebell':'#EAFAEE','Skivstång':'#FFF8E6','Kabelmaskin':'#F3EBFE','Maskin':'#F0F0EE'};
+  document.getElementById('libBody').innerHTML=exs.length?
+    exs.map(e=>`<div class="ex-card${e.isCustom?' ex-card-custom':''}" onclick="showExercise('${e.id}')">
+      <div class="ex-icon" style="background:${colors[e.equip]||'#F5F5F3'}">${e.icon||'⚡'}</div>
+      <div class="ex-info">
+        <div class="ex-name">${e.name}${e.isCustom?'<span style="font-size:10px;font-weight:700;color:var(--accent);margin-left:6px">EGEN</span>':''}</div>
+        <div class="ex-meta">${e.muscle} · ${e.diff}</div>
+      </div>
+      <div class="ex-equip">${e.equip}</div>
+    </div>`).join('')
+    :'<div style="text-align:center;padding:32px;color:var(--muted)">Inga övningar hittades</div>';
+}
+
+function showExercise(id){
+  const e=getExercises().find(x=>x.id===id);if(!e)return;
+  document.getElementById('modalTitle').textContent=e.name;
+  document.getElementById('modalBody').innerHTML=`
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+      <span class="badge badge-orange">${e.muscle}</span>
+      <span class="badge badge-blue">${e.equip}</span>
+      <span class="badge" style="background:var(--bg);color:var(--muted)">${e.diff}</span>
+    </div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:4px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">Sekundära muskler</div>
+    <div style="font-size:14px;color:var(--text);margin-bottom:16px">${e.secondary||'—'}</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em">Utförande</div>
+    ${e.instructions.map((s,i)=>`<div style="display:flex;gap:10px;margin-bottom:8px"><div style="width:22px;height:22px;border-radius:50%;background:var(--accent);color:#FFF;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">${i+1}</div><div style="font-size:14px;color:var(--text);line-height:1.5">${s}</div></div>`).join('')}
+    <button class="btn-primary" style="margin-top:20px" onclick="showProgression('${id}')">📈 Se progression</button>
+    ${e.isCustom?`<button class="btn-ghost" style="color:#E53E3E;border-color:#E53E3E;margin-top:8px" onclick="deleteCustomExercise('${id}')">🗑 Ta bort övning</button>`:''}
+    <button class="btn-ghost" onclick="closeModal()">Stäng</button>`;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function getExerciseProgression(exId){
+  const points=[];
+  const sorted=[...ST.workoutLog].sort((a,b)=>a.date<b.date?-1:1);
+  for(const entry of sorted){
+    const workout=ST.workouts.find(w=>w.id===entry.workoutId);
+    if(!workout)continue;
+    const exIdx=workout.exercises.findIndex(e=>e.exerciseId===exId);
+    if(exIdx===-1)continue;
+    const sets=(entry.exercises||[])[exIdx];
+    if(!sets||!sets.length)continue;
+    const done=sets.filter(s=>s.done);
+    if(!done.length)continue;
+    const maxW=Math.max(...done.map(s=>s.weight||0));
+    const maxR=Math.max(...done.map(s=>s.reps||0));
+    const vol=done.reduce((sum,s)=>sum+(s.reps||0)*(s.weight||0),0);
+    points.push({date:entry.date,maxW,maxR,vol,sets:done.length});
+  }
+  return points;
+}
+
+function buildProgressionSVG(points,isBodyweight){
+  const W=300,H=140,PL=36,PR=8,PT=10,PB=28;
+  const PW=W-PL-PR,PH=H-PT-PB;
+  const vals=points.map(p=>isBodyweight?p.maxR:p.maxW||p.maxR);
+  const maxV=Math.max(...vals,1)*1.15;
+  const prIdx=vals.indexOf(Math.max(...vals));
+  const xs=points.map((_,i)=>PL+(points.length>1?i/(points.length-1)*PW:PW/2));
+  const ys=vals.map(v=>PT+PH-(v/maxV)*PH);
+  const line=xs.map((x,i)=>`${i?'L':'M'}${x.toFixed(1)},${ys[i].toFixed(1)}`).join('');
+  const area=`${line}L${xs[xs.length-1].toFixed(1)},${PT+PH}L${xs[0].toFixed(1)},${PT+PH}Z`;
+  const grid=[0.25,0.5,0.75,1].map(f=>{
+    const y=PT+PH-f*PH;
+    return`<line x1="${PL}" y1="${y.toFixed(1)}" x2="${W-PR}" y2="${y.toFixed(1)}" stroke="var(--border)" stroke-width="1"/>
+    <text x="${PL-4}" y="${(y+3.5).toFixed(1)}" text-anchor="end" font-size="9" fill="var(--muted)">${Math.round(f*maxV)}</text>`;
+  }).join('');
+  const step=Math.ceil(points.length/5);
+  const xlabels=points.map((p,i)=>{
+    if(i%step!==0&&i!==points.length-1)return'';
+    return`<text x="${xs[i].toFixed(1)}" y="${PT+PH+16}" text-anchor="middle" font-size="8" fill="var(--muted)">${p.date.slice(5)}</text>`;
+  }).join('');
+  const dots=xs.map((x,i)=>{
+    const pr=i===prIdx;
+    return`<circle cx="${x.toFixed(1)}" cy="${ys[i].toFixed(1)}" r="${pr?5.5:3.5}" fill="${pr?'var(--accent)':'var(--accent2)'}" stroke="white" stroke-width="1.5"/>`;
+  }).join('');
+  return`<svg viewBox="0 0 ${W} ${H}" style="width:100%;overflow:visible">
+    <defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="var(--accent)" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="var(--accent)" stop-opacity="0"/>
+    </linearGradient></defs>
+    ${grid}
+    <line x1="${PL}" y1="${PT}" x2="${PL}" y2="${PT+PH}" stroke="var(--border)" stroke-width="1"/>
+    <line x1="${PL}" y1="${PT+PH}" x2="${W-PR}" y2="${PT+PH}" stroke="var(--border)" stroke-width="1"/>
+    ${xlabels}
+    <path d="${area}" fill="url(#ag)"/>
+    <path d="${line}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+    ${dots}
+  </svg>`;
+}
+
+function showProgression(id){
+  const e=getExercises().find(x=>x.id===id);if(!e)return;
+  const points=getExerciseProgression(id);
+  const isBodyweight=e.equip==='Kroppsvikt'||e.isTimer;
+  const unit=isBodyweight?'reps':'kg';
+  const prVal=points.length?Math.max(...points.map(p=>isBodyweight?p.maxR:p.maxW||p.maxR)):0;
+  const lastVal=points.length?(isBodyweight?points[points.length-1].maxR:points[points.length-1].maxW||0):0;
+  document.getElementById('modalTitle').textContent=e.name;
+  document.getElementById('modalBody').innerHTML=`
+    <button onclick="showExercise('${id}')" style="background:none;border:none;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;padding:0;margin-bottom:16px">← Info</button>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:20px">
+      <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;text-align:center">
+        <div style="font-size:20px;font-weight:800;color:var(--accent)">${prVal||'—'}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">PR (${unit})</div>
+      </div>
+      <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;text-align:center">
+        <div style="font-size:20px;font-weight:800;color:var(--text)">${points.length}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">Pass</div>
+      </div>
+      <div style="background:var(--bg);border-radius:var(--radius-sm);padding:12px;text-align:center">
+        <div style="font-size:20px;font-weight:800;color:var(--text)">${lastVal||'—'}</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:2px">Senast (${unit})</div>
+      </div>
+    </div>
+    <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">${isBodyweight?'Max reps per pass':'Max vikt per pass (kg)'}</div>
+    ${points.length>=2
+      ? buildProgressionSVG(points,isBodyweight)
+      : `<div style="background:var(--bg);border-radius:var(--radius);padding:32px 16px;text-align:center;color:var(--muted);font-size:14px">${points.length===1?'Logga minst 2 pass för att se graf':'Inga loggade pass ännu'}</div>`}
+    <button class="btn-ghost" onclick="closeModal()" style="margin-top:16px">Stäng</button>`;
+}
+
+// ── NUTRITION ─────────────────────────────────────────────
+function todayFoodLog(){return ST.foodLog.filter(e=>e.date===today());}
+
+function foodMacros(f,g){
+  const r=g/100;
+  return{cal:Math.round(f.cal*r),prot:Math.round(f.prot*r*10)/10,carbs:Math.round(f.carbs*r*10)/10,fat:Math.round(f.fat*r*10)/10};
+}
+
+function renderNutrition(){
+  const d=new Date();
+  document.getElementById('nutrDate').textContent=d.toLocaleDateString('sv-SE',{weekday:'long',day:'numeric',month:'long'});
+  const log=todayFoodLog();
+  const g=ST.macroGoals;
+
+  const totals=log.reduce((s,e)=>({cal:s.cal+e.cal,prot:s.prot+e.prot,carbs:s.carbs+e.carbs,fat:s.fat+e.fat}),{cal:0,prot:0,carbs:0,fat:0});
+
+  const pctW=(v,max)=>Math.min(v/max*100,100).toFixed(1)+'%';
+
+  document.getElementById('nutrProtGoal').textContent=g.protein;
+  document.getElementById('nutrCarbGoal').textContent=g.carbs;
+  document.getElementById('nutrFatGoal').textContent=g.fat;
+
+  document.getElementById('nutrSummary').innerHTML=`
+    <div class="nutr-cal-row">
+      <div><div class="nutr-cal-num">${Math.round(totals.cal)}</div><div style="font-size:11px;color:var(--muted);letter-spacing:0.06em;text-transform:uppercase">kcal idag</div></div>
+      <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:var(--text)">${g.calories-Math.round(totals.cal)}</div><div style="font-size:11px;color:var(--muted)">kcal kvar</div></div>
+    </div>
+    ${[['Protein','#E85D26',totals.prot,g.protein,'g'],['Kolhydrater','#2A6AE8',totals.carbs,g.carbs,'g'],['Fett','#22A647',totals.fat,g.fat,'g']].map(([n,c,v,max])=>`
+    <div class="rm-row" style="margin-bottom:10px">
+      <div class="rm-label"><span class="rm-name">${n}</span><span class="rm-val">${v} / ${max}${''}</span></div>
+      <div class="rm-bar"><div class="rm-fill" style="background:${c};width:${pctW(v,max)}"></div></div>
+    </div>`).join('')}`;
+
+  const MEAL_IDS=[['breakfast','Frukost'],['lunch','Lunch'],['dinner','Middag'],['snack','Mellanmål']];
+  document.getElementById('mealCards').innerHTML=MEAL_IDS.map(([id,label])=>{
+    const items=log.filter(e=>e.meal===id);
+    const mCal=items.reduce((s,e)=>s+e.cal,0);
+    return`<div class="meal-card">
+      <div class="meal-header">
+        <span class="meal-name">${label}</span>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="meal-cal">${mCal?Math.round(mCal)+' kcal':''}</span>
+          <button class="meal-add" onclick="openAddFood('${id}')">+ Lägg till</button>
+        </div>
+      </div>
+      ${items.length?items.map(e=>`
+        <div class="food-item">
+          <div style="flex:1">
+            <div class="food-item-name">${e.foodName}</div>
+            <div class="food-item-detail">${e.amountG}g · ${Math.round(e.cal)} kcal</div>
+          </div>
+          <div class="food-item-macros">P${e.prot}·K${e.carbs}·F${e.fat}</div>
+          <button class="food-item-del" onclick="removeFoodEntry('${e.id}')">✕</button>
+        </div>`).join('')
+      :`<div class="meal-empty">Inga livsmedel tillagda</div>`}
+    </div>`;
+  }).join('');
+}
+
+function openAddFood(meal){
+  ST._addFoodMeal=meal;
+  ST._addFoodSelected=null;
+  const labels={breakfast:'Frukost',lunch:'Lunch',dinner:'Middag',snack:'Mellanmål'};
+  document.getElementById('modalTitle').textContent='Lägg till — '+labels[meal];
+  document.getElementById('modalBody').innerHTML=`
+    <input id="foodSearchInput" type="text" placeholder="Sök livsmedel..." oninput="renderFoodSearch(this.value)"
+      style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:15px;color:var(--text);background:var(--bg);outline:none;margin-bottom:4px">
+    <div id="foodSearchResults"></div>
+    <div id="foodAmountSection" style="display:none">
+      <div class="food-amount-section">
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:10px" id="foodSelectedName"></div>
+        <label style="font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted)">Mängd (gram)</label>
+        <input id="foodAmountInput" type="number" value="100" min="1" max="2000"
+          style="width:100%;padding:12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:20px;font-weight:700;color:var(--text);background:var(--card);text-align:center;margin-top:6px;outline:none"
+          oninput="updateFoodPreview()">
+        <div class="food-amount-preview" id="foodPreview"></div>
+      </div>
+      <button class="btn-primary" onclick="confirmAddFood()">Lägg till i logg</button>
+    </div>`;
+  renderFoodSearch('');
+  document.getElementById('modalOverlay').classList.add('show');
+  setTimeout(()=>document.getElementById('foodSearchInput')?.focus(),100);
+}
+
+function renderFoodSearch(q){
+  const lower=q.toLowerCase();
+  const results=FOODS.filter(f=>!q||f.name.toLowerCase().includes(lower)).slice(0,12);
+  document.getElementById('foodSearchResults').innerHTML=results.map(f=>`
+    <div class="food-search-item" onclick="selectFood('${f.id}')">
+      <div>
+        <div class="food-search-name">${f.name}</div>
+        <div class="food-search-meta">per 100g: ${f.cal} kcal · P${f.prot}g · K${f.carbs}g · F${f.fat}g</div>
+      </div>
+      <div style="font-size:18px;color:var(--muted)">›</div>
+    </div>`).join('')||'<div style="padding:20px;text-align:center;color:var(--muted)">Inga träffar</div>';
+}
+
+function selectFood(id){
+  ST._addFoodSelected=FOODS.find(f=>f.id===id);
+  document.getElementById('foodAmountSection').style.display='block';
+  document.getElementById('foodSelectedName').textContent=ST._addFoodSelected.name;
+  document.getElementById('foodSearchResults').style.display='none';
+  document.getElementById('foodSearchInput').style.display='none';
+  updateFoodPreview();
+}
+
+function updateFoodPreview(){
+  const f=ST._addFoodSelected;if(!f)return;
+  const g=parseFloat(document.getElementById('foodAmountInput').value)||100;
+  const m=foodMacros(f,g);
+  document.getElementById('foodPreview').innerHTML=`<b>${m.cal} kcal</b> &nbsp;·&nbsp; Protein ${m.prot}g &nbsp;·&nbsp; Kolhydrater ${m.carbs}g &nbsp;·&nbsp; Fett ${m.fat}g`;
+}
+
+async function confirmAddFood(){
+  const f=ST._addFoodSelected;if(!f)return;
+  const g=parseFloat(document.getElementById('foodAmountInput').value)||100;
+  const m=foodMacros(f,g);
+  const entry={id:'fl'+Date.now(),date:today(),meal:ST._addFoodMeal,foodId:f.id,foodName:f.name,amountG:g,cal:m.cal,prot:m.prot,carbs:m.carbs,fat:m.fat};
+  ST.foodLog.push(entry);
+  await save('fortis_foodlog',ST.foodLog);
+  document.getElementById('modalOverlay').classList.remove('show');
+  renderNutrition();
+}
+
+async function removeFoodEntry(id){
+  ST.foodLog=ST.foodLog.filter(e=>e.id!==id);
+  await save('fortis_foodlog',ST.foodLog);
+  renderNutrition();
+}
+
+// ── PROFILE ───────────────────────────────────────────────
+function renderProfile(){
+  const p=ST.profile;
+  if(!p)return;
+  const initials=(p.name||'?').split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('profAvatar').textContent=initials;
+  document.getElementById('profName').textContent=p.name||'—';
+  const goals={lose:'Gå ner i vikt',maintain:'Hålla vikt',gain:'Bygga muskler'};
+  document.getElementById('profGoalText').textContent=`Mål: ${goals[p.goal]||'—'} · ${p.weight||'—'} kg`;
+  document.getElementById('psTotal').textContent=ST.workoutLog.length;
+  document.getElementById('psStreak').textContent=calcStreak();
+  document.getElementById('psWeight').textContent=p.weight||'—';
+  const unlocked=new Set(ST.achievements||[]);
+  document.getElementById('achGrid').innerHTML=ACHIEVEMENT_DEFS.map(a=>`
+    <div class="ach-card ${unlocked.has(a.id)?'':'locked'}">
+      <div class="ach-icon">${a.icon}</div>
+      <div><div class="ach-name">${a.name}</div><div class="ach-desc">${a.desc}</div></div>
+    </div>`).join('');
+  const g=ST.macroGoals;
+  const themeHTML=`
+    <div class="section-title" style="padding:0 0 10px;margin-top:20px">Tema</div>
+    <div class="theme-row">
+      ${Object.entries(THEMES).map(([id,t])=>`
+        <div style="flex:1">
+          <div class="theme-swatch ${ST.activeTheme===id?'active':''}" onclick="setTheme('${id}')">
+            <div class="theme-swatch-top" style="background:${t.bg}"></div>
+            <div class="theme-swatch-bot" style="background:${t.accent}"></div>
+            <div class="theme-swatch-check">✓</div>
+          </div>
+          <div class="theme-label">${t.name}</div>
+        </div>`).join('')}
+    </div>`;
+  document.getElementById('settingsItems').innerHTML=themeHTML+[
+    {label:'Kalorimål',val:g.calories+' kcal'},
+    {label:'Proteinmål',val:g.protein+'g'},
+    {label:'Längd',val:(p.height||'—')+'cm'},
+    {label:'Målvikt',val:(p.goalWeight||'—')+'kg'},
+    {label:'Vattenmål',val:ST.waterGoal+'ml'},
+  ].map(i=>`<div class="settings-item"><span class="si-label">${i.label}</span><span class="si-val">${i.val}</span></div>`).join('');
+}
+
+// ── ACTIVE WORKOUT ────────────────────────────────────────
+function startWorkout(wid){
+  const w=ST.workouts.find(x=>x.id===wid);if(!w)return;
+  ST.activeWorkout={...w,setStates:w.exercises.map(e=>Array.from({length:e.sets},()=>({done:false,reps:e.reps||0,weight:e.weight||0,dur:e.durationSec||0})))};
+  ST.awStartTime=Date.now();
+  document.getElementById('awName').textContent=w.name;
+  document.getElementById('active-workout').style.display='flex';
+  ST.awTimerInterval=setInterval(()=>{
+    const s=Math.floor((Date.now()-ST.awStartTime)/1000);
+    document.getElementById('awTimer').textContent=`${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+  },1000);
+  renderActiveWorkout();
+}
+
+function renderActiveWorkout(){
+  const aw=ST.activeWorkout;
+  document.getElementById('awBody').innerHTML=aw.exercises.map((e,ei)=>{
+    const ex=getExercises().find(x=>x.id===e.exerciseId);if(!ex)return'';
+    const isTimer=!!e.durationSec;
+    return`<div class="aw-ex-card">
+      <div class="aw-ex-name">${ex.icon} ${ex.name}</div>
+      <div class="aw-sets">
+        <div class="aw-set-row" style="opacity:0.5;font-size:11px;letter-spacing:0.06em;margin-bottom:2px">
+          <div></div><div style="text-align:center;color:#666">${isTimer?'Sek':'Reps'}</div>
+          <div style="text-align:center;color:#666">${isTimer?'':' Kg'}</div><div></div>
+        </div>
+        ${aw.setStates[ei].map((set,si)=>`
+        <div class="aw-set-row">
+          <div class="set-num">${si+1}</div>
+          <input class="set-input" type="number" value="${isTimer?set.dur:set.reps}" min="0" onchange="updateSet(${ei},${si},'${isTimer?'dur':'reps'}',this.value)">
+          ${isTimer?`<div style="text-align:center;color:#444;font-size:13px">sek</div>`:
+          `<input class="set-input" type="number" value="${set.weight}" step="0.5" min="0" onchange="updateSet(${ei},${si},'weight',this.value)">`}
+          <button class="set-done ${set.done?'completed':''}" onclick="toggleSet(${ei},${si})">✓</button>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateSet(ei,si,field,val){ST.activeWorkout.setStates[ei][si][field]=parseFloat(val)||0;}
+
+function toggleSet(ei,si){
+  const set=ST.activeWorkout.setStates[ei][si];
+  set.done=!set.done;
+  if(set.done){
+    const restSec=ST.activeWorkout.exercises[ei]?.restSec||60;
+    startRest(restSec);
+  }
+  renderActiveWorkout();
+}
+
+function startRest(secs){
+  let t=secs;
+  document.getElementById('restNum').textContent=t;
+  document.getElementById('restOverlay').classList.add('show');
+  clearInterval(ST.restInterval);
+  ST.restInterval=setInterval(()=>{
+    t--;document.getElementById('restNum').textContent=t;
+    if(t<=0){clearInterval(ST.restInterval);document.getElementById('restOverlay').classList.remove('show');}
+  },1000);
+}
+
+function skipRest(){clearInterval(ST.restInterval);document.getElementById('restOverlay').classList.remove('show');}
+
+async function finishWorkout(){
+  clearInterval(ST.awTimerInterval);
+  const dur=Math.floor((Date.now()-ST.awStartTime)/1000/60);
+  const entry={id:Date.now(),date:today(),workoutId:ST.activeWorkout.id,workoutName:ST.activeWorkout.name,durationMin:dur,exercises:ST.activeWorkout.setStates};
+  ST.workoutLog.unshift(entry);
+  await save('fortis_workoutlog',ST.workoutLog);
+  document.getElementById('active-workout').style.display='none';
+  document.getElementById('streakCount').textContent=calcStreak();
+  document.getElementById('psTotal').textContent=ST.workoutLog.length;
+  document.getElementById('psStreak').textContent=calcStreak();
+  renderTodayWorkout();
+  alert(`Pass klart! 💪 Varade ${dur} minuter.`);
+  checkAchievements();
+}
+
+function closeWorkout(){
+  if(confirm('Avsluta passet utan att spara?')){
+    clearInterval(ST.awTimerInterval);clearInterval(ST.restInterval);
+    document.getElementById('active-workout').style.display='none';
+    document.getElementById('restOverlay').classList.remove('show');
+  }
+}
+
+// ── MODAL ─────────────────────────────────────────────────
+function closeModal(e){if(!e||e.target===document.getElementById('modalOverlay'))document.getElementById('modalOverlay').classList.remove('show');}
+
+function toggleFilterModal(){
+  const overlay=document.getElementById('filterOverlay');
+  const muscles=['Alla','Bröst','Rygg','Ben','Axlar','Armar','Core','Helkropp','Kondition'];
+  const diffs=['Alla','Nybörjare','Medel','Avancerad'];
+  overlay.querySelector('#fmMuscles').innerHTML=muscles.map(m=>
+    `<div class="filter-chip ${ST.muscleFilter===m?'active':''}" onclick="setMuscleFilter('${m}')">${m}</div>`
+  ).join('');
+  overlay.querySelector('#fmDiffs').innerHTML=diffs.map(d=>
+    `<div class="filter-chip ${ST.diffFilter===d?'active':''}" onclick="setDiffFilter('${d}')">${d}</div>`
+  ).join('');
+  overlay.classList.add('show');
+}
+
+function setMuscleFilter(m){
+  ST.muscleFilter=m;
+  document.querySelectorAll('#fmMuscles .filter-chip').forEach(c=>c.classList.toggle('active',c.textContent===m));
+}
+
+function setDiffFilter(d){
+  ST.diffFilter=d;
+  document.querySelectorAll('#fmDiffs .filter-chip').forEach(c=>c.classList.toggle('active',c.textContent===d));
+}
+
+function applyFilters(){
+  document.getElementById('filterOverlay').classList.remove('show');
+  updateFilterBadge();
+  filterExercises();
+}
+
+function resetFilters(){
+  ST.muscleFilter='Alla';
+  ST.diffFilter='Alla';
+  document.querySelectorAll('#fmMuscles .filter-chip').forEach(c=>c.classList.toggle('active',c.textContent==='Alla'));
+  document.querySelectorAll('#fmDiffs .filter-chip').forEach(c=>c.classList.toggle('active',c.textContent==='Alla'));
+}
+
+function closeFilterOverlay(e){
+  if(e.target===document.getElementById('filterOverlay'))applyFilters();
+}
+
+// ── CUSTOM EXERCISES ──────────────────────────────────────
+function openCreateExercise(){
+  ST._createExInstructions=[''];
+  document.getElementById('ceName').value='';
+  document.getElementById('ceIcon').value='';
+  document.getElementById('ceSecondary').value='';
+  renderCEInstructions();
+  document.getElementById('createExOverlay').classList.add('show');
+}
+function closeCreateExercise(e){
+  if(!e||e.target===document.getElementById('createExOverlay'))
+    document.getElementById('createExOverlay').classList.remove('show');
+}
+function renderCEInstructions(){
+  document.getElementById('ceInstructions').innerHTML=ST._createExInstructions.map((s,i)=>`
+    <div class="ce-instruction-row">
+      <input type="text" value="${s.replace(/"/g,'&quot;')}" placeholder="Steg ${i+1}..." oninput="ST._createExInstructions[${i}]=this.value">
+      <button onclick="removeInstruction(${i})">✕</button>
+    </div>`).join('');
+}
+function addInstruction(){
+  ST._createExInstructions.push('');
+  renderCEInstructions();
+}
+function removeInstruction(i){
+  ST._createExInstructions.splice(i,1);
+  if(!ST._createExInstructions.length)ST._createExInstructions=[''];
+  renderCEInstructions();
+}
+async function saveCustomExercise(){
+  const name=document.getElementById('ceName').value.trim();
+  if(!name){alert('Ange ett namn.');return;}
+  const icon=document.getElementById('ceIcon').value.trim()||'⚡';
+  const muscle=document.getElementById('ceMuscle').value;
+  const secondary=document.getElementById('ceSecondary').value.trim();
+  const equip=document.getElementById('ceEquip').value;
+  const diff=document.getElementById('ceDiff').value;
+  const type=document.getElementById('ceType').value;
+  const instructions=ST._createExInstructions.filter(s=>s.trim());
+  const ex={id:'custom_'+Date.now(),name,muscle,secondary,equip,icon,diff,type,instructions,isCustom:true};
+  ST.customExercises.push(ex);
+  await save('fortis_custom_exercises',ST.customExercises);
+  closeCreateExercise();
+  renderLibrary();
+}
+async function deleteCustomExercise(id){
+  if(!confirm('Ta bort övningen? Den försvinner från biblioteket.'))return;
+  ST.customExercises=ST.customExercises.filter(e=>e.id!==id);
+  await save('fortis_custom_exercises',ST.customExercises);
+  closeModal();
+  renderLibrary();
+}
+
+// ── RESET ─────────────────────────────────────────────────
+async function resetApp(){
+  if(!confirm('Återställ all data? Detta kan inte ångras.'))return;
+  if(window.storage){
+    try{await window.storage.delete('fortis_profile');}catch{}
+    try{await window.storage.delete('fortis_workouts');}catch{}
+    try{await window.storage.delete('fortis_workoutlog');}catch{}
+    try{await window.storage.delete('fortis_water_'+today());}catch{}
+  }
+  location.reload();
+}
+
+// ── START ─────────────────────────────────────────────────
+init();
+</script>
+</div>
+</body>
+</html>
