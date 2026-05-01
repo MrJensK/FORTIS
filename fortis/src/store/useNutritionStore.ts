@@ -12,6 +12,8 @@ interface NutritionStore {
   addFoodEntry: (entry: FoodLogEntry) => Promise<void>
   removeFoodEntry: (id: string) => Promise<void>
   addWater: (ml: number) => Promise<void>
+  addCustomFood: (food: FoodItem) => Promise<void>
+  removeCustomFood: (id: string) => Promise<void>
 }
 
 export const useNutritionStore = create<NutritionStore>((set, get) => ({
@@ -43,6 +45,18 @@ export const useNutritionStore = create<NutritionStore>((set, get) => ({
     const next = get().waterToday + ml
     set({ waterToday: next })
     await storageSet(STORAGE_KEYS.water(today()), next)
+  },
+
+  addCustomFood: async (food) => {
+    const foods = [...get().customFoods, food]
+    set({ customFoods: foods })
+    await storageSet(STORAGE_KEYS.customFoods, foods)
+  },
+
+  removeCustomFood: async (id) => {
+    const foods = get().customFoods.filter((f) => f.id !== id)
+    set({ customFoods: foods })
+    await storageSet(STORAGE_KEYS.customFoods, foods)
   },
 }))
 

@@ -59,7 +59,7 @@ export default function ScheduleScreen() {
         ))}
       </View>
 
-      <ScrollView style={s.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView style={s.scroll} contentContainerStyle={{ paddingBottom: 32 }} showsVerticalScrollIndicator={false}>
         {dayWorkouts.length === 0 ? (
           <View style={s.emptyCard}>
             <Text style={s.emptyText}>Ingen träning {DAYS[selectedDay]}en.{'\n'}Vila eller lägg till ett pass.</Text>

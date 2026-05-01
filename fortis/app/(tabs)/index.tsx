@@ -25,8 +25,7 @@ function CalorieRing({ eaten, goal, accent }: { eaten: number; goal: number; acc
         fill="none"
         strokeDasharray={`${dash} ${circ}`}
         strokeLinecap="round"
-        rotation="-90"
-        origin="65,65"
+        transform="rotate(-90 65 65)"
       />
     </Svg>
   )
@@ -103,7 +102,7 @@ export default function HomeScreen() {
         )}
       </View>
 
-      <ScrollView style={s.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView style={s.scroll} contentContainerStyle={{ paddingBottom: 32 }} showsVerticalScrollIndicator={false}>
         {/* Calorie card */}
         <View style={s.card}>
           <Text style={s.sectionTitle}>Kalorier</Text>

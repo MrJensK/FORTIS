@@ -7,6 +7,7 @@ export interface Profile {
   weightKg: number
   goalWeightKg: number
   goal: 'lose' | 'maintain' | 'gain'
+  pace: 'slow' | 'moderate' | 'fast'
   activityLevel: 'sedentary' | 'light' | 'moderate' | 'very_active'
   macroGoals: MacroGoals
   createdAt: string

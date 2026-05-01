@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal, TextInput, FlatList } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Plus, X } from 'lucide-react-native'
+import { Plus, X, ChevronLeft } from 'lucide-react-native'
 import { useTheme } from '../../src/hooks/useTheme'
 import { useProfileStore } from '../../src/store/useProfileStore'
 import { useNutritionStore, todayFoodLog } from '../../src/store/useNutritionStore'
 import { FOODS } from '../../src/constants/foods'
-import { FoodLogEntry } from '../../src/constants/types'
+import { FoodLogEntry, FoodItem } from '../../src/constants/types'
 import { today } from '../../src/lib/macroCalc'
 
 const MEALS: { key: FoodLogEntry['meal']; label: string; icon: string }[] = [
@@ -20,9 +20,18 @@ function AddFoodModal({ meal, onClose }: { meal: FoodLogEntry['meal']; onClose: 
   const theme = useTheme()
   const addFoodEntry = useNutritionStore((s) => s.addFoodEntry)
   const customFoods = useNutritionStore((s) => s.customFoods)
+  const addCustomFood = useNutritionStore((s) => s.addCustomFood)
+  const removeCustomFood = useNutritionStore((s) => s.removeCustomFood)
+
+  const [mode, setMode] = useState<'list' | 'create'>('list')
   const [search, setSearch] = useState('')
-  const [selected, setSelected] = useState<typeof FOODS[0] | null>(null)
+  const [selected, setSelected] = useState<FoodItem | null>(null)
   const [amount, setAmount] = useState('100')
+  const [cfName, setCfName] = useState('')
+  const [cfCal, setCfCal] = useState('')
+  const [cfProt, setCfProt] = useState('')
+  const [cfCarbs, setCfCarbs] = useState('')
+  const [cfFat, setCfFat] = useState('')
 
   const allFoods = [...FOODS, ...customFoods]
   const filtered = allFoods.filter((f) => !search || f.name.toLowerCase().includes(search.toLowerCase()))
@@ -53,18 +62,33 @@ function AddFoodModal({ meal, onClose }: { meal: FoodLogEntry['meal']; onClose: 
     onClose()
   }
 
+  const saveCustomFood = async () => {
+    if (!cfName.trim() || !cfCal) return
+    await addCustomFood({
+      id: `cf${Date.now()}`,
+      name: cfName.trim(),
+      cal: Number(cfCal) || 0,
+      prot: Number(cfProt) || 0,
+      carbs: Number(cfCarbs) || 0,
+      fat: Number(cfFat) || 0,
+      isCustom: true,
+    })
+    setMode('list')
+    setCfName(''); setCfCal(''); setCfProt(''); setCfCarbs(''); setCfFat('')
+  }
+
   const s = StyleSheet.create({
     overlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
     sheet: { backgroundColor: theme.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 20, paddingBottom: 40, maxHeight: '90%' },
     handle: { width: 40, height: 4, backgroundColor: theme.border, borderRadius: 2, alignSelf: 'center', marginBottom: 16 },
     title: { color: theme.text, fontSize: 18, fontWeight: '800', marginBottom: 12 },
     searchWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: theme.bg, borderRadius: 10, paddingHorizontal: 12, height: 42, borderWidth: 1, borderColor: theme.border, marginBottom: 12 },
-    searchInput: { flex: 1, color: theme.text, fontSize: 15, marginLeft: 6 },
-    foodItem: { paddingVertical: 10, paddingHorizontal: 4, borderBottomWidth: 1, borderBottomColor: theme.border, flexDirection: 'row' as const, justifyContent: 'space-between' as const },
+    searchInput: { flex: 1, color: theme.text, fontSize: 15 },
+    foodItem: { paddingVertical: 10, paddingHorizontal: 4, borderBottomWidth: 1, borderBottomColor: theme.border, flexDirection: 'row' as const, alignItems: 'center' as const },
     foodItemActive: { backgroundColor: theme.accentLight },
     foodName: { color: theme.text, fontSize: 14, fontWeight: '500' as const },
     foodNameActive: { color: theme.accent, fontWeight: '700' as const },
-    foodMeta: { color: theme.muted, fontSize: 12 },
+    foodMeta: { color: theme.muted, fontSize: 12, marginRight: 4 },
     preview: { backgroundColor: theme.bg, borderRadius: 12, padding: 14, marginTop: 12, gap: 8 },
     previewTitle: { color: theme.text, fontSize: 14, fontWeight: '700', marginBottom: 4 },
     previewRow: { flexDirection: 'row' as const, justifyContent: 'space-between' as const },
@@ -75,6 +99,8 @@ function AddFoodModal({ meal, onClose }: { meal: FoodLogEntry['meal']; onClose: 
     amountInput: { backgroundColor: theme.bg, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, color: theme.text, fontSize: 15, width: 80, borderWidth: 1, borderColor: theme.border, textAlign: 'center' as const },
     confirmBtn: { backgroundColor: theme.accent, borderRadius: 12, paddingVertical: 14, alignItems: 'center' as const, marginTop: 12 },
     confirmBtnText: { color: '#FFF', fontSize: 15, fontWeight: '700' },
+    fieldLabel: { color: theme.muted, fontSize: 11, fontWeight: '700' as const, letterSpacing: 0.8, textTransform: 'uppercase' as const, marginBottom: 6 },
+    fieldInput: { backgroundColor: theme.bg, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, color: theme.text, fontSize: 15, borderWidth: 1, borderColor: theme.border, marginBottom: 12 },
   })
 
   return (
@@ -83,40 +109,85 @@ function AddFoodModal({ meal, onClose }: { meal: FoodLogEntry['meal']; onClose: 
         <TouchableOpacity activeOpacity={1}>
           <View style={s.sheet}>
             <View style={s.handle} />
-            <Text style={s.title}>Lägg till mat</Text>
-            <View style={s.searchWrap}>
-              <TextInput style={s.searchInput} value={search} onChangeText={setSearch} placeholder="Sök livsmedel..." placeholderTextColor={theme.muted} />
-            </View>
-            <FlatList
-              data={filtered}
-              keyExtractor={(f) => f.id}
-              style={{ maxHeight: 200 }}
-              renderItem={({ item: f }) => (
-                <TouchableOpacity style={[s.foodItem, selected?.id === f.id && s.foodItemActive]} onPress={() => setSelected(f)}>
-                  <Text style={[s.foodName, selected?.id === f.id && s.foodNameActive]}>{f.name}</Text>
-                  <Text style={s.foodMeta}>{f.cal} kcal/100g</Text>
+            {mode === 'create' ? (
+              <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+                <TouchableOpacity onPress={() => setMode('list')} style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 14 }}>
+                  <ChevronLeft size={18} color={theme.accent} />
+                  <Text style={{ color: theme.accent, fontSize: 14, fontWeight: '600' }}>Tillbaka</Text>
                 </TouchableOpacity>
-              )}
-            />
-            {selected && (
-              <View style={s.preview}>
-                <Text style={s.previewTitle}>{selected.name}</Text>
-                <View style={s.amountRow}>
-                  <Text style={s.amountLabel}>Mängd (g):</Text>
-                  <TextInput style={s.amountInput} value={amount} onChangeText={setAmount} keyboardType="numeric" />
+                <Text style={s.title}>Nytt livsmedel</Text>
+                <Text style={s.fieldLabel}>Namn</Text>
+                <TextInput style={s.fieldInput} value={cfName} onChangeText={setCfName} placeholder="Ex. Hemmagjord granola" placeholderTextColor={theme.muted} />
+                <Text style={s.fieldLabel}>Kalorier (per 100g)</Text>
+                <TextInput style={s.fieldInput} value={cfCal} onChangeText={setCfCal} keyboardType="decimal-pad" placeholder="kcal" placeholderTextColor={theme.muted} />
+                <View style={{ flexDirection: 'row', gap: 10 }}>
+                  {[['Protein (g)', cfProt, setCfProt], ['Kolhydrater (g)', cfCarbs, setCfCarbs], ['Fett (g)', cfFat, setCfFat]].map(([label, val, setter]) => (
+                    <View key={label as string} style={{ flex: 1 }}>
+                      <Text style={s.fieldLabel}>{label as string}</Text>
+                      <TextInput style={s.fieldInput} value={val as string} onChangeText={setter as (v: string) => void} keyboardType="decimal-pad" placeholder="g" placeholderTextColor={theme.muted} />
+                    </View>
+                  ))}
                 </View>
-                {macros && (
-                  <>
-                    <View style={s.previewRow}><Text style={s.previewLabel}>Kalorier</Text><Text style={s.previewVal}>{macros.cal} kcal</Text></View>
-                    <View style={s.previewRow}><Text style={s.previewLabel}>Protein</Text><Text style={s.previewVal}>{macros.prot}g</Text></View>
-                    <View style={s.previewRow}><Text style={s.previewLabel}>Kolhydrater</Text><Text style={s.previewVal}>{macros.carbs}g</Text></View>
-                    <View style={s.previewRow}><Text style={s.previewLabel}>Fett</Text><Text style={s.previewVal}>{macros.fat}g</Text></View>
-                  </>
-                )}
-                <TouchableOpacity style={s.confirmBtn} onPress={confirm}>
-                  <Text style={s.confirmBtnText}>Lägg till</Text>
+                <TouchableOpacity style={s.confirmBtn} onPress={saveCustomFood}>
+                  <Text style={s.confirmBtnText}>Spara livsmedel</Text>
                 </TouchableOpacity>
-              </View>
+              </ScrollView>
+            ) : (
+              <>
+                <Text style={s.title}>Lägg till mat</Text>
+                <View style={s.searchWrap}>
+                  <TextInput style={s.searchInput} value={search} onChangeText={setSearch} placeholder="Sök livsmedel..." placeholderTextColor={theme.muted} />
+                </View>
+                <FlatList
+                  data={filtered}
+                  keyExtractor={(f) => f.id}
+                  style={{ maxHeight: 200 }}
+                  renderItem={({ item: f }) => (
+                    <TouchableOpacity style={[s.foodItem, selected?.id === f.id && s.foodItemActive]} onPress={() => setSelected(f)}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[s.foodName, selected?.id === f.id && s.foodNameActive]}>{f.name}</Text>
+                        {f.isCustom && <Text style={{ color: theme.muted, fontSize: 10, fontWeight: '700' }}>EGET</Text>}
+                      </View>
+                      <Text style={s.foodMeta}>{f.cal} kcal/100g</Text>
+                      {f.isCustom && (
+                        <TouchableOpacity
+                          onPress={() => { removeCustomFood(f.id); if (selected?.id === f.id) setSelected(null) }}
+                          style={{ padding: 6 }}
+                          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                        >
+                          <X size={14} color={theme.muted} />
+                        </TouchableOpacity>
+                      )}
+                    </TouchableOpacity>
+                  )}
+                  ListFooterComponent={
+                    <TouchableOpacity onPress={() => setMode('create')} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 12, paddingHorizontal: 4 }}>
+                      <Plus size={15} color={theme.accent} />
+                      <Text style={{ color: theme.accent, fontSize: 14, fontWeight: '600' }}>Skapa eget livsmedel</Text>
+                    </TouchableOpacity>
+                  }
+                />
+                {selected && (
+                  <View style={s.preview}>
+                    <Text style={s.previewTitle}>{selected.name}</Text>
+                    <View style={s.amountRow}>
+                      <Text style={s.amountLabel}>Mängd (g):</Text>
+                      <TextInput style={s.amountInput} value={amount} onChangeText={setAmount} keyboardType="numeric" />
+                    </View>
+                    {macros && (
+                      <>
+                        <View style={s.previewRow}><Text style={s.previewLabel}>Kalorier</Text><Text style={s.previewVal}>{macros.cal} kcal</Text></View>
+                        <View style={s.previewRow}><Text style={s.previewLabel}>Protein</Text><Text style={s.previewVal}>{macros.prot}g</Text></View>
+                        <View style={s.previewRow}><Text style={s.previewLabel}>Kolhydrater</Text><Text style={s.previewVal}>{macros.carbs}g</Text></View>
+                        <View style={s.previewRow}><Text style={s.previewLabel}>Fett</Text><Text style={s.previewVal}>{macros.fat}g</Text></View>
+                      </>
+                    )}
+                    <TouchableOpacity style={s.confirmBtn} onPress={confirm}>
+                      <Text style={s.confirmBtnText}>Lägg till</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </>
             )}
           </View>
         </TouchableOpacity>
@@ -167,7 +238,7 @@ export default function NutritionScreen() {
       <View style={s.header}>
         <Text style={s.title}>Kost</Text>
       </View>
-      <ScrollView style={s.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView style={s.scroll} contentContainerStyle={{ paddingBottom: 32 }} showsVerticalScrollIndicator={false}>
         <View style={s.summaryCard}>
           <Text style={s.summaryTitle}>Idag</Text>
           <View style={s.calRow}>

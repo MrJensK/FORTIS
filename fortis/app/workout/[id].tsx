@@ -121,7 +121,7 @@ export default function WorkoutScreen() {
         <View style={s.timerPill}><Text style={s.timerText}>{timerDisplay}</Text></View>
       </View>
 
-      <ScrollView style={s.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView style={s.scroll} contentContainerStyle={{ paddingBottom: 32 }} showsVerticalScrollIndicator={false}>
         {restTime !== null && (
           <View style={s.restBanner}>
             <Text style={s.restText}>⏱ Vila</Text>

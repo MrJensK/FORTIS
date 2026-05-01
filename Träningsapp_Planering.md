@@ -1,7 +1,7 @@
 # Träningsapp — Planeringsspecifikation
-**Version:** 1.1  
-**Status:** Planeringsfas  
-**Målplattform:** JSX (prototyp) → React Native / Expo (produktion)
+**Version:** 1.2  
+**Status:** Fas 1–5 klara — React Native-appen är live  
+**Målplattform:** React Native + Expo SDK 54 (migration genomförd)
 
 ---
 
@@ -482,13 +482,14 @@ App
 
 ## 7. Fas-indelning
 
-| Fas | Innehåll | Prioritet |
-|-----|----------|-----------|
-| **Fas 1** | Splash + Onboarding, Dashboard, Övningslogg, Träningsschema (grundläggande) | Hög |
-| **Fas 2** | Övningsbibliotek, Progressionsgraf, Streak/Achievements | Hög |
-| **Fas 3** | Kostlogg, Kaloriräknare, Makrospårning, Vattenintag | Medel |
-| **Fas 4** | Barcodeläsare, Open Food Facts-integration, Notifikationer | Lägre |
-| **Fas 5** | Export till React Native, offline-stöd, push-notiser | Migration |
+| Fas | Innehåll | Status |
+|-----|----------|--------|
+| **Fas 1** | Splash + Onboarding, Dashboard, Övningslogg, Träningsschema | ✅ Klar |
+| **Fas 2** | Övningsbibliotek (75 övningar), Achievements, Egna övningar | ✅ Klar |
+| **Fas 3** | Kostlogg, Makrospårning, Matdatabas, Vattenintag, Egna livsmedel | ✅ Klar |
+| **Fas 4** | Profil-redigering, Viktgraf, Mätningslogg, Takt-val | ✅ Klar |
+| **Fas 5** | React Native + Expo migration, AsyncStorage, offline-stöd | ✅ Klar |
+| **Fas 6** | Barcodeläsare, Open Food Facts API, Push-notifikationer | 🔜 Näst |
 
 ---
 
@@ -507,4 +508,4 @@ App
 
 ---
 
-*Dokument uppdaterat: 2025-04-29*
+*Dokument uppdaterat: 2026-05-01*

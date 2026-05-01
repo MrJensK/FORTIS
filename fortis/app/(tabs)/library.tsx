@@ -17,8 +17,8 @@ function ExerciseDetailModal({ ex, onClose, onDelete }: { ex: Exercise; onClose:
   return (
     <Modal visible transparent animationType="slide" onRequestClose={onClose}>
       <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }} activeOpacity={1} onPress={onClose}>
-        <TouchableOpacity activeOpacity={1}>
-          <ScrollView style={{ backgroundColor: t.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40, maxHeight: '90%' }}>
+        <View>
+          <ScrollView style={{ backgroundColor: t.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '90%' }} contentContainerStyle={{ paddingBottom: 40 }}>
             <View style={{ width: 40, height: 4, backgroundColor: t.border, borderRadius: 2, alignSelf: 'center', marginBottom: 16 }} />
             <Text style={{ color: t.text, fontSize: 20, fontWeight: '800', marginBottom: 12 }}>{ex.name}</Text>
             <View style={{ flexDirection: 'row', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
@@ -49,7 +49,7 @@ function ExerciseDetailModal({ ex, onClose, onDelete }: { ex: Exercise; onClose:
               <Text style={{ color: t.text, fontSize: 15, fontWeight: '700' }}>Stäng</Text>
             </TouchableOpacity>
           </ScrollView>
-        </TouchableOpacity>
+        </View>
       </TouchableOpacity>
     </Modal>
   )
@@ -90,8 +90,8 @@ function CreateExerciseModal({ onClose, onSave }: { onClose: () => void; onSave:
   return (
     <Modal visible transparent animationType="slide" onRequestClose={onClose}>
       <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }} activeOpacity={1} onPress={onClose}>
-        <TouchableOpacity activeOpacity={1}>
-          <ScrollView style={{ backgroundColor: t.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, paddingBottom: 40, maxHeight: '95%' }} keyboardShouldPersistTaps="handled">
+        <View>
+          <ScrollView style={{ backgroundColor: t.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 24, maxHeight: '95%' }} contentContainerStyle={{ paddingBottom: 40 }} keyboardShouldPersistTaps="handled">
             <View style={{ width: 40, height: 4, backgroundColor: t.border, borderRadius: 2, alignSelf: 'center', marginBottom: 16 }} />
             <Text style={{ color: t.text, fontSize: 20, fontWeight: '800', marginBottom: 16 }}>Skapa övning</Text>
             <Text style={labelStyle}>Namn</Text>
@@ -127,7 +127,7 @@ function CreateExerciseModal({ onClose, onSave }: { onClose: () => void; onSave:
               <TouchableOpacity style={{ flex: 2, backgroundColor: t.accent, borderRadius: 12, paddingVertical: 14, alignItems: 'center' }} onPress={save}><Text style={{ color: '#FFF', fontWeight: '700', fontSize: 15 }}>Spara övning</Text></TouchableOpacity>
             </View>
           </ScrollView>
-        </TouchableOpacity>
+        </View>
       </TouchableOpacity>
     </Modal>
   )

@@ -1,29 +1,71 @@
-import { useState } from 'react'
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native'
+import { useState, useEffect, useRef } from 'react'
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Animated } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
+import { Svg, Circle } from 'react-native-svg'
 import { useTheme } from '../../src/hooks/useTheme'
 import { useProfileStore } from '../../src/store/useProfileStore'
-import { calcTDEE, calcMacros } from '../../src/lib/macroCalc'
+import { calcTDEE, calcMacros, PACE_LABELS } from '../../src/lib/macroCalc'
 import { Profile } from '../../src/constants/types'
 
 const STEPS = 5
 
+function SplashIntro({ onDone }: { onDone: () => void }) {
+  const progress = useRef(new Animated.Value(0)).current
+  const opacity = useRef(new Animated.Value(1)).current
+  const rotate = useRef(new Animated.Value(0)).current
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(progress, { toValue: 1, duration: 2400, useNativeDriver: false }),
+      Animated.loop(Animated.timing(rotate, { toValue: 1, duration: 1800, useNativeDriver: true })),
+    ]).start()
+    const t = setTimeout(() => {
+      Animated.timing(opacity, { toValue: 0, duration: 350, useNativeDriver: true }).start(onDone)
+    }, 2800)
+    return () => clearTimeout(t)
+  }, [])
+
+  const spin = rotate.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] })
+  const barWidth = progress.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] })
+
+  return (
+    <Animated.View style={{ flex: 1, backgroundColor: '#0F0F0F', alignItems: 'center', justifyContent: 'center', opacity }}>
+      <Animated.View style={{ transform: [{ rotate: spin }], marginBottom: 32 }}>
+        <Svg width={100} height={100} viewBox="0 0 100 100">
+          <Circle cx={50} cy={50} r={40} stroke="rgba(232,93,38,0.2)" strokeWidth={6} fill="none" />
+          <Circle cx={50} cy={50} r={40} stroke="#E85D26" strokeWidth={6} fill="none"
+            strokeDasharray="60 192" strokeLinecap="round" transform="rotate(-90 50 50)" />
+        </Svg>
+      </Animated.View>
+      <Text style={{ color: '#FFF', fontSize: 38, fontWeight: '900', letterSpacing: 6, marginBottom: 48 }}>FORTIS</Text>
+      <View style={{ width: 160, height: 4, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 2, overflow: 'hidden' }}>
+        <Animated.View style={{ height: 4, backgroundColor: '#E85D26', borderRadius: 2, width: barWidth }} />
+      </View>
+    </Animated.View>
+  )
+}
+
 type OBData = {
   name: string; gender: 'male' | 'female' | 'other'
   age: string; height: string; weight: string; goalWeight: string
-  goal: 'lose' | 'maintain' | 'gain'; activity: 'sedentary' | 'light' | 'moderate' | 'very_active'
+  goal: 'lose' | 'maintain' | 'gain'
+  pace: 'slow' | 'moderate' | 'fast'
+  activity: 'sedentary' | 'light' | 'moderate' | 'very_active'
 }
 
-const DEFAULT_OB: OBData = { name: '', gender: 'male', age: '', height: '', weight: '', goalWeight: '', goal: 'maintain', activity: 'moderate' }
+const DEFAULT_OB: OBData = { name: '', gender: 'male', age: '', height: '', weight: '', goalWeight: '', goal: 'maintain', pace: 'moderate', activity: 'moderate' }
 
 export default function OnboardingScreen() {
   const theme = useTheme()
   const router = useRouter()
   const setProfile = useProfileStore((s) => s.setProfile)
   const setMacroGoals = useProfileStore((s) => s.setMacroGoals)
+  const [showSplash, setShowSplash] = useState(true)
   const [step, setStep] = useState(1)
   const [data, setData] = useState<OBData>(DEFAULT_OB)
+
+  if (showSplash) return <SplashIntro onDone={() => setShowSplash(false)} />
 
   const set = (field: keyof OBData, val: string) => setData((d) => ({ ...d, [field]: val }))
 
@@ -32,7 +74,7 @@ export default function OnboardingScreen() {
     const h = Number(data.height) || 175
     const w = Number(data.weight) || 75
     const tdee = calcTDEE({ gender: data.gender, age, heightCm: h, weightKg: w, activityLevel: data.activity })
-    return calcMacros(tdee, data.goal, w)
+    return calcMacros(tdee, data.goal, data.pace, w)
   })()
 
   const save = async () => {
@@ -45,6 +87,7 @@ export default function OnboardingScreen() {
       weightKg: Number(data.weight) || 75,
       goalWeightKg: Number(data.goalWeight) || Number(data.weight) || 75,
       goal: data.goal,
+      pace: data.pace,
       activityLevel: data.activity,
       macroGoals: macros,
       createdAt: new Date().toISOString(),
@@ -58,7 +101,7 @@ export default function OnboardingScreen() {
   const skip = async () => {
     const p: Profile = {
       id: `p${Date.now()}`, name: 'Användare', gender: 'male', age: 25,
-      heightCm: 175, weightKg: 75, goalWeightKg: 75, goal: 'maintain',
+      heightCm: 175, weightKg: 75, goalWeightKg: 75, goal: 'maintain', pace: 'moderate',
       activityLevel: 'moderate', macroGoals: { calories: 2200, proteinG: 165, carbsG: 220, fatG: 73 },
       createdAt: new Date().toISOString(), updatedAt: new Date().toISOString(),
     }
@@ -139,6 +182,21 @@ export default function OnboardingScreen() {
           </View>
           <Text style={s.label}>Målvikt (kg)</Text>
           <TextInput style={s.input} value={data.goalWeight} onChangeText={(v) => set('goalWeight', v)} placeholder="kg" keyboardType="decimal-pad" placeholderTextColor={theme.muted} />
+          {data.goal !== 'maintain' && (
+            <>
+              <Text style={s.label}>Takt</Text>
+              {PACE_LABELS[data.goal].map((p) => (
+                <TouchableOpacity
+                  key={p.pace}
+                  style={[{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: theme.card, borderRadius: 12, padding: 14, marginBottom: 8, borderWidth: 1.5, borderColor: data.pace === p.pace ? theme.accent : 'transparent' }]}
+                  onPress={() => set('pace', p.pace)}
+                >
+                  <Text style={{ color: data.pace === p.pace ? theme.accent : theme.text, fontSize: 15, fontWeight: '700' }}>{p.label}</Text>
+                  <Text style={{ color: theme.muted, fontSize: 13 }}>{p.desc}</Text>
+                </TouchableOpacity>
+              ))}
+            </>
+          )}
           <Text style={s.label}>Aktivitetsnivå</Text>
           {[
             ['sedentary','Stillasittande'],['light','Lätt aktiv (1–3 dagar/v)'],
